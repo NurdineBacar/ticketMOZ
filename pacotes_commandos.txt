@@ -1,0 +1,3 @@
+-----Redux---------
+# instaltion
+npm install @reduxjs/toolkit react-redux next-redux-wrapper

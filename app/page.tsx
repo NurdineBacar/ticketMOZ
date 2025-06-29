@@ -1,103 +1,184 @@
-import Image from "next/image";
+"use client";
+
+import EventCard from "@/components/my-components/EventCard";
+import Hero from "@/components/my-components/Hero";
+import LandingHeader from "@/components/my-components/lading-header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { eventCategories } from "@/consts/fake_categories";
+import { mockEvents } from "@/consts/fake_events";
+import { useTranslation } from "@/hooks/hook-langauge";
+import { EventService } from "@/service/event/event-service";
+import { useEffect, useState } from "react";
+import { EventProps } from "./localEvent";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const t = useTranslation();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const eventsPerPage = 6;
+  const [events, SetEvents] = useState<EventProps[] | []>([]);
+
+  // Extract unique genres if no categories provided
+  const genres =
+    eventCategories.length > 0
+      ? eventCategories
+      : Array.from(new Set(mockEvents.map((event) => event.genre)));
+
+  // Filter events based on search term and selected genre
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesGenre = selectedGenre ? event.genre === selectedGenre : true;
+    return matchesSearch && matchesGenre;
+  });
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+  const indexOfLastEvent = currentPage * eventsPerPage;
+  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
+  const currentEvents = filteredEvents.slice(
+    indexOfFirstEvent,
+    indexOfLastEvent
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const eventService = new EventService();
+    async function fetchEvents() {
+      const response = await eventService.getEvents();
+      console.log("Eventos :", response);
+      if (response) {
+        SetEvents(
+          response.map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            date: t.event_date,
+            rawDate: new Date(t.event_date),
+            location: t.location,
+            genre: t.category,
+            price: t.ticket?.ticketType?.[1]?.price
+              ? t.ticket.ticketType[1].price.toString()
+              : "0",
+            imageUrl: t.image,
+            hasVIP: t.ticket?.ticketType?.some((tt: any) => tt.name === "VIP"),
+            event: t,
+          }))
+        );
+      } else {
+        console.error("Failed to fetch events");
+      }
+    }
+
+    fetchEvents();
+  }, []);
+  return (
+    <main className="bg-white text-black flex flex-col">
+      <header className=" flex flex-col">
+        <LandingHeader />
+        <Hero />
+      </header>
+
+      <main>
+        <div id="events-section" className="bg-white py-16">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold mb-8 text-center">
+              {t("upcomingEvents")}
+            </h2>
+
+            <div className="mb-8">
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-grow">
+                  <Input
+                    type="text"
+                    placeholder={t("searchEvents")}
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  <Button
+                    variant={selectedGenre === null ? "default" : "outline"}
+                    onClick={() => setSelectedGenre(null)}
+                    className="whitespace-nowrap"
+                  >
+                    {t("all")}
+                  </Button>
+                  {genres.map((genre) => (
+                    <Button
+                      key={genre}
+                      variant={selectedGenre === genre ? "default" : "outline"}
+                      onClick={() => setSelectedGenre(genre)}
+                      className="whitespace-nowrap"
+                    >
+                      {genre}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {filteredEvents.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+
+                {/* Pagination component */}
+                {/* {totalPages > 1 && (
+                  <div className="mt-8">
+                    <Pagination>
+                      <PaginationContent>
+                        {currentPage > 1 && (
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => handlePageChange(currentPage - 1)}
+                            />
+                          </PaginationItem>
+                        )}
+
+                        {Array.from({ length: totalPages }).map((_, index) => (
+                          <PaginationItem key={index}>
+                            <PaginationLink
+                              isActive={currentPage === index + 1}
+                              onClick={() => handlePageChange(index + 1)}
+                            >
+                              {index + 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+
+                        {currentPage < totalPages && (
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => handlePageChange(currentPage + 1)}
+                            />
+                          </PaginationItem>
+                        )}
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )} */}
+              </>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-gray-500">{t("noEventsFound")}</p>
+              </div>
+            )}
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    </main>
   );
 }
