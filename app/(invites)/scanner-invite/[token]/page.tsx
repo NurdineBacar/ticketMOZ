@@ -87,25 +87,22 @@ export default function Invite() {
       // await api.post("/scanner/accept-invite", { token });
       if (!user) {
         toast.error("Erro", {
-          description: "Eerro ao pegar iID do utilizador",
+          description: "Erro ao pegar ID do utilizador",
         });
         return;
       }
 
-      await eventService
-        .acceptInviteScanner(token, user?.id)
-        .then((response) => {
-          console.log(response);
-          if (response.success) {
-            toast.success("Sucesso", {
-              description: "Oraaaaaaaaaaaaa",
-            });
-            setAccepted(true);
-          } else {
-            console.log(response);
-            setLoading(false);
-          }
+      const resp = await eventService.acceptInviteScanner(token, user?.id);
+
+      if (resp.success) {
+        toast.success("Sucesso", {
+          description: "Oraaaaaaaaaaaaa",
         });
+        setAccepted(true);
+      } else {
+        console.log(resp);
+        setLoading(false);
+      }
     } catch (err: any) {
       setError("Erro ao aceitar convite.");
     } finally {

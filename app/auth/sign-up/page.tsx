@@ -64,7 +64,7 @@ const signUpSchema = z
   })
   .refine(
     (data) => {
-      if (data.user_type === "promoter") {
+      if (data.user_type === "promotor") {
         return (
           data.company_name &&
           data.company_nuit &&
@@ -245,7 +245,7 @@ export default function SignUp() {
                         />
                       </div>
 
-                      {methods.watch("user_type") === "promoter" && (
+                      {methods.watch("user_type") === "promotor" && (
                         <>
                           <div className="space-y-2">
                             <FormField

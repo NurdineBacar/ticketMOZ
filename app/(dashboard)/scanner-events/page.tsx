@@ -18,6 +18,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { MyDataTable } from "@/components/my-components/data-table";
 import { toast } from "sonner";
 import { columns } from "./COLUMN";
+import { useAuth } from "@/hooks/useAuth";
+import Cookies from "js-cookie";
+import { User } from "@/types/user";
 
 export default function Events() {
   const router = useRouter();
@@ -25,11 +28,21 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const eventService = new EventService();
+  const [user, setUser] = useState<any>();
 
   const fetchEvents = async () => {
     try {
       const eventsData = await eventService.getEvents();
-      setEvents(eventsData);
+      console.log(user);
+      console.log("eventos");
+      console.log(eventsData);
+      setEvents(
+        eventsData.filter(
+          (t: any) =>
+            Array.isArray(t.userEvent) &&
+            t.userEvent.some((u: any) => u.userId === user.id)
+        )
+      );
     } catch (err) {
       console.error("Erro no componente:", err);
       setError("Failed to load events");
@@ -38,8 +51,17 @@ export default function Events() {
     }
   };
   useEffect(() => {
-    fetchEvents();
+    const userCookie = Cookies.get("user");
+    const userParsed = userCookie ? (JSON.parse(userCookie) as User) : null;
+    setUser(userParsed);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchEvents();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Calculate statistics from events data
   // Calculate statistics from events data
@@ -110,11 +132,6 @@ export default function Events() {
             (totalTicketsSold / totalCapacity) * 100
           )}% da capacidade`}
         />
-        <StatCard
-          title="Capacidade total"
-          value={totalCapacity}
-          subtitle={`De ${totalEvents} eventos`}
-        />
       </section>
 
       <section>
@@ -129,7 +146,7 @@ export default function Events() {
               data={events ?? []}
               actions={{
                 viewScanners: (item: any) => {
-                  router.push(`events/scanners-event/${item.id}`);
+                  router.push(`scanner-events/scanner-validator/${item.id}`);
                 },
               }}
             />

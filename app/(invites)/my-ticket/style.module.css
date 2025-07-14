@@ -1,0 +1,14 @@
+#ticket-header {
+  box-sizing: border-box;
+  position: relative;
+  width: 1280px;
+  height: 312px;
+  overflow: hidden;
+}
+
+/* Ajuste para os elementos internos */
+#ticket-header > div {
+  width: 100% !important;
+  height: 100% !important;
+  transform-origin: top left;
+}

@@ -45,7 +45,7 @@ export default function Profile() {
         <Tabs defaultValue="profile" className="space-y-4">
           <TabsList>
             <TabsTrigger value="profile">Perfil</TabsTrigger>
-            <TabsTrigger value="appearance">Aparência</TabsTrigger>
+            {/* <TabsTrigger value="appearance">Aparência</TabsTrigger> */}
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
           </TabsList>
 
@@ -63,9 +63,9 @@ export default function Profile() {
                         {getInitials(user.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <Button variant="outline" size="sm">
+                    {/* <Button variant="outline" size="sm">
                       Alterar foto
-                    </Button>
+                    </Button> */}
                   </div>
 
                   <div className="space-y-4 flex-1">
@@ -105,7 +105,7 @@ export default function Profile() {
 
                 <Separator />
 
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label htmlFor="bio">Biografia</Label>
                   <textarea
                     id="bio"
@@ -114,9 +114,9 @@ export default function Profile() {
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Conte um pouco sobre você..."
                   />
-                </div>
+                </div> */}
 
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label htmlFor="language">Idioma preferido</Label>
                   <select
                     id="language"
@@ -127,7 +127,7 @@ export default function Profile() {
                     <option value="pt">Português</option>
                     <option value="en">English</option>
                   </select>
-                </div>
+                </div> */}
 
                 <div className="flex justify-end">
                   <Button onClick={handleUpdateProfile}>

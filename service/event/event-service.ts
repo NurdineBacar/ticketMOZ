@@ -72,8 +72,7 @@ export class EventService {
 
   async acceptInviteScanner(token: string, userID: string) {
     try {
-      const resp = await api.post("invite-scanner/accept", {
-        token: token,
+      const resp = await api.post("invite-scanner/accept/" + token, {
         userID: userID,
       });
 
@@ -88,6 +87,19 @@ export class EventService {
   async getEventByToken(token: string) {
     try {
       const resp = await api.get(`/event/by-token/${token}`);
+      if (resp.status == 200 || resp.status == 201) {
+        return resp.data.data;
+      } else {
+        return resp.data.message || "Erro ao buscar evento";
+      }
+    } catch (error) {
+      throw new Error("Erro ao processar requisicao -> " + error);
+    }
+  }
+
+  async getScannerByEvetn(eventID: string) {
+    try {
+      const resp = await api.get(`event/fetch-all-scanners/${eventID}`);
       if (resp.status == 200 || resp.status == 201) {
         return resp.data.data;
       } else {

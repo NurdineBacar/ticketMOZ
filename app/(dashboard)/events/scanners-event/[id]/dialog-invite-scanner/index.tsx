@@ -27,9 +27,20 @@ export default function InviteScanner({ event }: InviteScannerProps) {
   const params = useParams();
   const eventId = params.id as string | undefined;
   const [totalScanners, setTotalScanners] = useState<number>(0);
+  const [evento, setEvento] = useState<Event | null>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+
+  async function fectEvent() {
+    if (typeof eventId === "string") {
+      const resp = await eventService.getEventById(eventId);
+      // You can use resp here as needed
+      setEvento(resp);
+    } else {
+      console.error("Invalid eventId:", eventId);
+    }
+  }
 
   const invite = async () => {
     if (!eventId) {
@@ -61,12 +72,11 @@ export default function InviteScanner({ event }: InviteScannerProps) {
   };
 
   const copyToClipboard = async () => {
-    if (!event?.inviteScanner?.token) return;
+    if (!evento?.inviteScanner?.token) return;
 
+    const url = `http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`;
     try {
-      await navigator.clipboard.writeText(
-        `http://localhost:3000/scanner-invite/${event.inviteScanner.token}`
-      );
+      await navigator.clipboard.writeText(url);
       toast.success("Link copiado para a área de transferência!");
     } catch (error) {
       toast.error("Falha ao copiar o link");
@@ -79,13 +89,13 @@ export default function InviteScanner({ event }: InviteScannerProps) {
     const inviteUrl = `http://localhost:3000/scanner-invite/${event?.inviteScanner?.token}`;
 
     if (!user) {
-      // Redireciona para login, passando o link do convite como redirect
       router.push(`/auth/sign-in?redirect=${encodeURIComponent(inviteUrl)}`);
     }
-    // Se estiver logado, segue normalmente
-
-    console.log(user);
   }, [event, router]);
+
+  useEffect(() => {
+    fectEvent();
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -100,27 +110,28 @@ export default function InviteScanner({ event }: InviteScannerProps) {
           <DialogTitle>
             Convite de scanners do evento: {event?.title}
           </DialogTitle>
-          <DialogDescription>
-            {event && event.inviteScanner ? (
-              <main>
+          {/* Removido DialogDescription e substituído por div */}
+          <div className="text-sm text-muted-foreground">
+            {evento && evento.inviteScanner ? (
+              <div className="mt-4">
                 <div className="rounded p-3 bg-neutral-200">
                   <Label className="mb-2">
                     Copie o link abaixo e partilhe com seus scanners:
                   </Label>
                   <div className="flex items-center gap-2 mt-2">
                     <a
-                      href={event.inviteScanner.token}
+                      href={evento.inviteScanner.token}
                       className="text-blue-500 underline break-all"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {`http://localhost:3000/scanner-invite/${event.inviteScanner.token}`}
+                      {`http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`}
                     </a>
                   </div>
                 </div>
-              </main>
+              </div>
             ) : (
-              <main>
+              <div className="mt-4">
                 <Label className="text-gray-400">
                   Insira o número de scanners que deseja convidar para este
                   evento
@@ -132,12 +143,12 @@ export default function InviteScanner({ event }: InviteScannerProps) {
                   placeholder="Número de scanners"
                   onChange={(e) => setTotalScanners(Number(e.target.value))}
                 />
-              </main>
+              </div>
             )}
-          </DialogDescription>
+          </div>
         </DialogHeader>
         <DialogFooter>
-          {event && event.inviteScanner ? (
+          {evento && evento.inviteScanner ? (
             <Button onClick={copyToClipboard}>Copiar Link</Button>
           ) : (
             <Button

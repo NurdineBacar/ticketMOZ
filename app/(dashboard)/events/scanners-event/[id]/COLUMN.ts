@@ -4,21 +4,21 @@ export const COLUMN: ColumnDef<any>[] = [
   {
     accessorKey: "name",
     header: "Nome",
-    cell: ({ row }) => row.original.name,
+    cell: ({ row }) => row.original.user.name,
   },
   {
     accessorKey: "email",
     header: "Email",
-    cell: ({ row }) => row.original.email,
+    cell: ({ row }) => row.original.user.email,
   },
   {
     accessorKey: "status",
     header: "Estado",
-    cell: ({ row }) => row.original.status,
+    cell: ({ row }) => "Activo",
   },
-  {
-    accessorKey: "last_active",
-    header: "Ultima vez activo",
-    cell: ({ row }) => row.original.last_active,
-  },
+  // {
+  //   accessorKey: "entry_date",
+  //   header: "Data de entrada",
+  //   cell: ({ row }) => row.original.createdAt,
+  // },
 ];

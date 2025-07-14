@@ -61,28 +61,37 @@ export default function SignIn() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
-    const response = await api.post("/auth/sign-in", {
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      const response = await api.post("/auth/sign-in", {
+        email: data.email,
+        password: data.password,
+      });
 
-    if (response.status == 200 || response.status == 201) {
-      const json = response.data;
-      const jwt: any = jwtDecode(json.token);
-      signIn(jwt?.user, json);
+      if (response.status === 200 || response.status === 201) {
+        const json = response.data;
+        const jwt: any = jwtDecode(json.token);
+        signIn(jwt?.user, json);
 
-      // Verifica se veio de um convite
-      const redirect = searchParams.get("redirect");
-      if (redirect) {
-        router.replace(redirect);
+        // Verifica se veio de um convite
+        const redirect = searchParams.get("redirect");
+        if (redirect) {
+          router.replace(redirect);
+        } else {
+          router.replace("/");
+        }
+        toast.success("Sessão iniciada com sucesso");
       } else {
-        router.replace("/");
+        toast.error(response.data.message || "Erro ao processar login");
       }
-      toast.success("Sessao inciada com sucesso");
-    } else if (response.status == 400) {
-      toast.error(response.data.message || "Erro ao processa");
+    } catch (error: any) {
+      // Mostra mensagem de erro se email ou senha estiverem errados
+      const message =
+        error?.response?.data?.message ||
+        "Email ou senha incorretos. Tente novamente.";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -151,7 +160,7 @@ export default function SignIn() {
                             {t("password")}
                           </FormLabel>
                           <Link
-                            href="/forgot-password"
+                            href="forgot-password"
                             className="text-sm text-muted-foreground hover:text-primary"
                           >
                             {t("forgotPassword")}

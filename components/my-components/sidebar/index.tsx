@@ -10,6 +10,7 @@ import {
   User,
   Menu,
   X,
+  SquareDashedBottom,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -52,8 +53,21 @@ export default function MySideBar() {
     { to: "/profile", icon: <User size={20} />, label: "Perfil" },
   ];
 
-  const admin = [
-    { to: "/reports", icon: <User size={20} />, label: "Relatorios" },
+  const masterAdmin = [
+    {
+      to: "/report-admin",
+      icon: <SquareDashedBottom size={20} />,
+      label: "Painel Adminstrador",
+    },
+    {
+      to: "/admin-notifications",
+      icon: <FileText size={20} />,
+      label: "Notificações",
+    },
+  ];
+
+  const client = [
+    { to: "/profile", icon: <User size={20} />, label: "Perfil" },
   ];
 
   useEffect(() => {
@@ -77,8 +91,12 @@ export default function MySideBar() {
         case "scanner":
           setRoutes(scanner);
           break;
-        case "admin":
-          setRoutes(admin);
+        case "master-admin":
+          setRoutes(masterAdmin);
+          break;
+
+        case "cliente":
+          setRoutes(client);
           break;
         default:
           break;

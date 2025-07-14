@@ -123,7 +123,7 @@ const LandingHeader = () => {
                         <SheetDescription>{t("accountInfo")}</SheetDescription>
                       </SheetHeader>
 
-                      <div className="py-6 space-y-4">
+                      <div className="py-6 space-y-4 px-5">
                         <div className="space-y-1">
                           <p className="text-sm font-medium">
                             {t("accountName")}
@@ -140,23 +140,36 @@ const LandingHeader = () => {
                           <p className="text-sm font-medium">
                             {t("accountTypeHeader")}
                           </p>
-                          <p className="text-sm text-gray-500">{user?.role}</p>
+                          <p className="text-sm text-gray-500 capitalize">
+                            {user?.user_type}
+                          </p>
                         </div>
                       </div>
-
-                      <SheetFooter>
+                      <SheetFooter className="flex flex-col gap-2">
                         <Button
                           asChild
                           size={isMobile ? "lg" : "sm"}
-                          className="mr-2"
+                          className="mr-2 w-full"
                         >
-                          <Link href={`/events`}>{t("goDashboard")}</Link>
+                          <Link
+                            href={
+                              user.user_type == "promotor"
+                                ? `/events`
+                                : user.user_type == "scanner"
+                                ? "scanner-events"
+                                : "profile"
+                            }
+                          >
+                            {t("goDashboard")}
+                          </Link>
                         </Button>
                         <Button
                           variant="destructive"
                           size={isMobile ? "lg" : "sm"}
+                          className="w-full"
                           onClick={() => {
-                            signOut(), router.refresh();
+                            signOut();
+                            router.refresh();
                           }}
                         >
                           {t("signOut")}

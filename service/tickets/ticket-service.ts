@@ -38,6 +38,20 @@ export class TicketService {
     }
   }
 
+  async getSaledTicketById(id: string) {
+    try {
+      const response = await api.get(`/ticket/saled-ticket/${id}`);
+      if (response.status === 200) {
+        console.log(response);
+        return response.data.data; // Retorna apenas os dados diretamente
+      }
+      throw new Error(response.data.message || "Erro ao buscar eventos");
+    } catch (error) {
+      console.error("Erro no EventService:", error);
+      throw error; // Rejeita o erro para ser tratado no componente
+    }
+  }
+
   private generateId(): string {
     return Math.random().toString(36).substr(2, 9);
   }

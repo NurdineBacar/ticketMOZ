@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { eventCategories } from "@/consts/fake_categories";
+import { Switch } from "@/components/ui/switch";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
@@ -99,6 +100,7 @@ export default function CreateEvent() {
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const router = useRouter();
+  const [hasVip, setHasVip] = useState(false);
 
   const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
@@ -478,52 +480,70 @@ export default function CreateEvent() {
 
                 <Card className="mb-4 w-full">
                   <CardHeader>
-                    <CardTitle>VIP</CardTitle>
+                    <CardTitle>
+                      <div className="flex justify-between items-center">
+                        <Label>VIP</Label>
+                        <div>
+                          <Label>Tem VIP? </Label>
+                          <Switch
+                            checked={hasVip}
+                            onCheckedChange={setHasVip}
+                          />
+                        </div>
+                      </div>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="vipTicketPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preço ingresso VIP</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Preço"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    {" "}
+                    {hasVip == true ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="vipTicketPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Preço ingresso VIP</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Preço"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                      <FormField
-                        control={form.control}
-                        name="vipTicketQuantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Quantidade ingressos VIP</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Quantidade"
-                                {...field}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                        <FormField
+                          control={form.control}
+                          name="vipTicketQuantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quantidade ingressos VIP</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Quantidade"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ) : (
+                      <main className="flex justify-center">
+                        <span className="text-center font-semibold text-gray-500"></span>
+                      </main>
+                    )}
                   </CardContent>
                 </Card>
               </section>

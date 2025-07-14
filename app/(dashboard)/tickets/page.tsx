@@ -9,17 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TicketService } from "@/service/tickets/ticket-service";
-import { TicketType } from "@/types/event";
 import { Download } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { COLUMNS } from "./COLUMN";
 import { SalesTicketService } from "@/service/sales/sales-ticket";
 import { SalesTicketType } from "@/types/sales-ticket";
 
 export default function Ticket() {
-  const [tickets, setTickets] = useState<TicketType[]>([]);
   const [salesTicket, setSalesTicket] = useState<SalesTicketType[]>([]);
+  const [totalVerifyed, setTotalVerifyed] = useState(0);
 
   const salesService = new SalesTicketService();
 
@@ -31,14 +29,38 @@ export default function Ticket() {
 
   const [total, setTotal] = useState<number>();
 
+  const handleExportCSV = () => {
+    const rows = [
+      [
+        "ID",
+        "Cliente",
+        "Email",
+        "Tipo Bilhete",
+        "Preço",
+        "Verificado",
+        "Data da Venda",
+      ],
+      ...salesTicket.map((t) => [
+        t.id,
+        t.user?.name || "",
+        t.user?.email || "",
+        t.tiketType?.name || "",
+        t.tiketType?.price || "",
+        t.isUsed ? "Sim" : "Não",
+        t.createdAt ? new Date(t.createdAt).toLocaleString("pt-BR") : "",
+      ]),
+    ];
+    const csvContent = rows.map((e) => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vendas.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
-    const ticketService = new TicketService();
-    const fetchTickets = async () => {
-      const fetch = await ticketService.getAllTicketType();
-      console.log("Tickets fetched:", fetch);
-      setTickets(fetch);
-    };
-    fetchTickets();
     fetchSales();
   }, []);
 
@@ -47,6 +69,9 @@ export default function Ticket() {
       (acc, curr) => acc + (curr.tiketType.price || 0),
       0
     );
+
+    const tverifyed = salesTicket.filter((t) => t.isUsed == true).length;
+    setTotalVerifyed(tverifyed);
     setTotal(totalVendas);
   }, [salesTicket]);
 
@@ -58,7 +83,7 @@ export default function Ticket() {
           <span className="text-gray-500">Gira seus bilhetes</span>
         </div>
 
-        <Button>
+        <Button onClick={handleExportCSV}>
           <Download /> Exportar CSV
         </Button>
       </header>
@@ -67,8 +92,11 @@ export default function Ticket() {
           title="Total Bilhetes"
           value={salesTicket.length.toString() || "N/A"}
         />
-        <MyCard title="Vendidos" value="150" />
-        <MyCard title="Verificados" value="150" />
+        <MyCard
+          title="Vendidos"
+          value={salesTicket.length.toString() || "N/A"}
+        />
+        <MyCard title="Verificados" value={totalVerifyed.toString() || "N/A"} />
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total vendas</CardTitle>
