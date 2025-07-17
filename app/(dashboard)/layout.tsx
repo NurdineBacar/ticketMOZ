@@ -30,7 +30,7 @@ export default function DashLayouy({
         <header className="h-14 border-b flex items-center justify-between px-4 md:px-6 fixed top-0 w-full bg-background z-30 md:relative">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-medium capitalize ml-8 md:ml-0">
-              {user?.role} {t("dashboard")}
+              {user?.user_type} {t("dashboard")}
             </h1>
           </div>
           <div className="flex items-center gap-4">

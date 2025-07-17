@@ -137,16 +137,6 @@ export default function CreateEvent() {
     setPreviewImage(null);
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () =>
-        resolve(reader.result?.toString().split(",")[1] || "");
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
   const uploadImageToCloudinary = async (file: File): Promise<string> => {
     try {
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -195,7 +185,6 @@ export default function CreateEvent() {
 
       const userCookie = Cookies.get("user");
       const userParsed = userCookie ? (JSON.parse(userCookie) as User) : null;
-      console.log("User from cookies:", userParsed?.company?.id);
 
       let imageUrl = "";
       if (data.image) {
@@ -411,7 +400,7 @@ export default function CreateEvent() {
                                   <SelectGroup>
                                     <SelectLabel>Categorias</SelectLabel>
                                     {eventCategories.map((item) => (
-                                      <SelectItem value={item}>
+                                      <SelectItem value={item} key={item}>
                                         {item}
                                       </SelectItem>
                                     ))}

@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/hook-langauge";
-import { userAgent } from "@/consts/users";
 import { EventProps } from "@/app/localEvent";
 
 interface EventDetailsDialogProps {
@@ -44,7 +43,6 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   const [vipCount, setVipCount] = useState(0);
   const [paymentOpen, setPaymentOpen] = useState(false);
   // const { user } = useAuth();
-  const user = userAgent;
   // const navigate = useNavigate();
   const router = useRouter();
   // const { t, language } = useLanguage();

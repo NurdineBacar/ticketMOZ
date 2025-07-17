@@ -5,7 +5,6 @@ import { Calendar, MapPin, Music, Banknote, Ticket } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/hooks/hook-langauge";
 import { useRouter } from "next/navigation";
-import { userAdmin } from "@/consts/users";
 import { EventProps } from "@/app/localEvent";
 import EventDetailsDialog from "../EventDetailsDialog";
 import api from "@/lib/axios";
@@ -14,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
   const isMobile = useIsMobile();
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const t = useTranslation();
   const router = useRouter();
 

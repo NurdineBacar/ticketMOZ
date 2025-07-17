@@ -153,9 +153,9 @@ const LandingHeader = () => {
                         >
                           <Link
                             href={
-                              user.user_type == "promotor"
+                              user?.user_type == "promotor"
                                 ? `/events`
-                                : user.user_type == "scanner"
+                                : user?.user_type == "scanner"
                                 ? "scanner-events"
                                 : "profile"
                             }

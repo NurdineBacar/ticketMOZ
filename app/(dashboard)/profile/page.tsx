@@ -87,13 +87,13 @@ export default function Profile() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="role">Tipo de conta</Label>
+                      <Label htmlFor="user_type">Tipo de conta</Label>
                       <Input
                         id="role"
                         value={
-                          user.role === "client"
+                          user.user_type === "cliente"
                             ? "Comprador"
-                            : user.role === "promoter"
+                            : user.user_type === "promotor"
                             ? "Promotor"
                             : "Scanner"
                         }

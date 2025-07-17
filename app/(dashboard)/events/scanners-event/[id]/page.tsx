@@ -7,49 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { QrCode, Plus, Check, X, Edit, User, Download } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+
 import { toast } from "sonner";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Event } from "@/types/event";
 import { EventService } from "@/service/event/event-service";
-import { Label } from "@/components/ui/label";
 import { MyDataTable } from "@/components/my-components/data-table";
 import { COLUMN } from "./COLUMN";
 import InviteScanner from "./dialog-invite-scanner";

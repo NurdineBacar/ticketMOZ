@@ -1,9 +1,9 @@
-import { UserType } from "./../../../types/user.d";
 // store/authSlice.js
+import { User } from "@/types/event";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface AuthState {
-  user: UserType | null;
+  user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;

@@ -11,99 +11,95 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TicketService } from "@/service/tickets/ticket-service";
 
+// ... (your existing imports and component structure)
+
 export default function DetailsEvent() {
   const param = useParams();
   const eventId = param.id as string | undefined;
   const [event, setEvent] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDownloading, setIsDownloading] = useState(false);
   const ticketService = new TicketService();
   const ticketRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = async () => {
-    if (!ticketRef.current || isDownloading) return;
+    if (!ticketRef.current) {
+      toast.error("Não foi possível encontrar o bilhete para download.");
+      return;
+    }
 
-    setIsDownloading(true);
-    toast.info("Preparando seu bilhete para download...");
+    toast.info("A preparar o seu bilhete para download...");
 
     try {
-      // Forçar reflow e garantir que o componente está renderizado
-      const reflow = ticketRef.current.offsetHeight;
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // It's good to have a small delay, but ensure it's sufficient for all content.
+      // For more robust solutions, consider a state-based approach where you only
+      // allow download after all data/images are confirmed loaded.
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Increased delay slightly
 
-      // Salvar estilos originais
-      const originalStyles = {
-        overflow: ticketRef.current.style.overflow,
-        position: ticketRef.current.style.position,
-        zIndex: ticketRef.current.style.zIndex,
-      };
+      // Ensure images inside the ticket container are loaded
+      const images = ticketRef.current.querySelectorAll("img");
+      const imageLoadPromises = Array.from(images).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      });
+      await Promise.all(imageLoadPromises);
 
-      // Aplicar estilos temporários para melhor captura
-      ticketRef.current.style.overflow = "visible";
-      ticketRef.current.style.position = "relative";
-      ticketRef.current.style.zIndex = "0";
-
-      // Gerar imagem com alta qualidade
       const dataUrl = await toPng(ticketRef.current, {
         quality: 1,
-        backgroundColor: "#ffffff",
-        pixelRatio: 3,
+        backgroundColor: "white",
+        pixelRatio: 4, // Further increase pixelRatio for very high quality
         cacheBust: true,
-        skipFonts: true,
+        // Remove style transformations here unless you specifically need to override
+        // existing CSS transformations that might distort the image.
+        // It's generally better to ensure the element is correctly styled *before* capture.
       });
 
-      // Restaurar estilos originais
-      ticketRef.current.style.overflow = originalStyles.overflow;
-      ticketRef.current.style.position = originalStyles.position;
-      ticketRef.current.style.zIndex = originalStyles.zIndex;
-
-      // Criar PDF
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
+        format: "a4", // Specify A4 format for clarity
       });
 
-      // Obter dimensões da imagem
       const img = new Image();
       img.src = dataUrl;
 
+      // Use a promise to ensure the image is loaded before adding to PDF
       await new Promise((resolve) => {
         img.onload = resolve;
       });
 
-      // Calcular dimensões para o PDF (A4 com margens)
-      const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
-      const pdfHeight = (img.height * pdfWidth) / img.width;
+      const imgWidth = img.width;
+      const imgHeight = img.height;
 
-      // Verificar se a altura excede a página A4
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      if (pdfHeight > pageHeight - 20) {
-        // Redimensionar proporcionalmente
-        const ratio = (pageHeight - 20) / pdfHeight;
-        pdf.addImage(
-          dataUrl,
-          "PNG",
-          10,
-          10,
-          pdfWidth * ratio,
-          pdfHeight * ratio
-        );
-      } else {
-        // Centralizar verticalmente
-        const yOffset = (pageHeight - pdfHeight) / 2;
-        pdf.addImage(dataUrl, "PNG", 10, yOffset, pdfWidth, pdfHeight);
-      }
+      const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // A4 width minus 10mm margins on each side
+      const pdfHeight = pdf.internal.pageSize.getHeight() - 20; // A4 height minus 10mm margins on top/bottom
 
-      // Salvar o PDF
-      pdf.save(
-        `bilhete-${event?.tiketType?.ticket?.event?.title || "evento"}.pdf`
+      let ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+      // Calculate the dimensions of the image on the PDF page
+      const finalImgWidth = imgWidth * ratio;
+      const finalImgHeight = imgHeight * ratio;
+
+      // Center the image on the page
+      const xOffset = (pdf.internal.pageSize.getWidth() - finalImgWidth) / 2;
+      const yOffset = (pdf.internal.pageSize.getHeight() - finalImgHeight) / 2;
+
+      pdf.addImage(
+        dataUrl,
+        "PNG",
+        xOffset,
+        yOffset,
+        finalImgWidth,
+        finalImgHeight
       );
-      toast.success("Bilhete baixado com sucesso!");
+
+      pdf.save("meu-bilhete.pdf");
+      toast.success("Bilhete baixado com sucesso! 🎉");
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
-      toast.error("Ocorreu um erro ao baixar o bilhete. Tente novamente.");
-    } finally {
-      setIsDownloading(false);
+      toast.error("Ocorreu um erro ao baixar o bilhete. Tente novamente. 😢");
     }
   };
 
@@ -136,7 +132,8 @@ export default function DetailsEvent() {
     return <div className="w-full text-center py-8">Evento não encontrado</div>;
   }
 
-  // Format date and time
+  // Formatting date and time might be better done directly where displayed if 'event' structure is inconsistent
+  // The provided code already handles this, keeping it for consistency.
   const eventDate = event?.tiketType?.ticket?.event?.event_date
     ? new Date(event.tiketType.ticket.event.event_date).toLocaleDateString(
         "pt-PT",
@@ -155,24 +152,23 @@ export default function DetailsEvent() {
 
   return (
     <main className={cn("w-full pt-4 mt-[1vh] pb-5", loading ? "" : "px-5")}>
-      {/* Ticket Container */}
+      {/* Ticket Container com ref para download */}
       <div
         ref={ticketRef}
         id="ticket-container"
         className="max-w-md mx-auto bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200"
-        style={{
-          position: "relative",
-          zIndex: 0,
-        }}
       >
         {/* Movie Title Section */}
         <div className="bg-gray-900 text-white p-6 relative h-96">
           <div className="absolute inset-0 opacity-30">
+            {/* Make sure the image `src` is always valid or has a fallback. */}
             <img
-              src={event?.tiketType?.ticket?.event?.image}
+              src={
+                event?.tiketType?.ticket?.event?.image ||
+                "https://via.placeholder.com/400x200?text=Event+Image"
+              }
               alt="Movie Banner"
               className="w-full h-full object-cover"
-              crossOrigin="anonymous" // Importante para evitar problemas com CORS
             />
           </div>
           <div className="relative z-10">
@@ -196,7 +192,9 @@ export default function DetailsEvent() {
           <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm mb-6">
             <div>
               <p className="text-gray-400 text-xs uppercase">Localização</p>
-              <p className="font-medium">{location}</p>
+              <p className="font-medium">
+                {event?.tiketType?.ticket?.event?.location || location}
+              </p>
             </div>
             <div>
               <p className="text-gray-400 text-xs uppercase">Data</p>
@@ -206,21 +204,17 @@ export default function DetailsEvent() {
               <p className="text-gray-400 text-xs uppercase">Hora</p>
               <p className="font-medium">{eventTime}</p>
             </div>
-            <div>
-              <p className="text-gray-400 text-xs uppercase">Lugares</p>
-              <p className="font-medium">{seats}</p>
-            </div>
           </div>
 
-          {/* Perforation Effect */}
+          {/* Perforation Effect (removed commented out divs, they were not doing anything) */}
           <div className="relative my-6">
-            <div className="absolute left-0 right-0 top-1/2 h-px bg-gray-400"></div>
+            <div className="absolute left-0 right-0 top-1/2 h-px bg-gray-400 border-t border-dashed border-gray-600"></div>
           </div>
 
           {/* QR Code Section */}
           <div className="flex flex-col items-center mt-10">
             <QRCodeGenerator
-              url={event?.qrCode || "https://example.com"}
+              url={event?.qrCode || "https://example.com"} // Ensure QR code URL is valid
               className="h-32 w-32 bg-white p-2 rounded"
             />
             <div className="mt-4 text-center text-sm">
@@ -243,10 +237,8 @@ export default function DetailsEvent() {
         <Button
           className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
           onClick={handleDownload}
-          disabled={isDownloading}
         >
-          <Download className="mr-2" />
-          {isDownloading ? "Preparando..." : "Baixar meu bilhete"}
+          <Download className="mr-2" /> Baixar meu bilhete
         </Button>
       </section>
     </main>

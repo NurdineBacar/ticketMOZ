@@ -6,15 +6,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import EventDetailsDialog from "./EventDetailsDialog";
 import { useTranslation } from "@/hooks/hook-langauge";
 import { useRouter } from "next/navigation";
-import { userAdmin } from "@/consts/users";
 import { EventProps } from "@/app/localEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const EventCard: React.FC<{ event: EventProps }> = ({ event }) => {
   const isMobile = useIsMobile();
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const user = userAdmin;
   const t = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleButtonClick = () => {
     if (!user) {

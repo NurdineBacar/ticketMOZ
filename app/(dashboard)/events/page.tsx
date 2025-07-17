@@ -13,8 +13,6 @@ import { Event } from "@/types/event";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton"; // Add loading skeleton
-import { ColumnDef } from "@tanstack/react-table";
 import { columns } from "./COLUMN";
 import { MyDataTable } from "@/components/my-components/data-table";
 import { toast } from "sonner";
@@ -172,7 +170,7 @@ export default function Events() {
                 delete: async (item: any) => {
                   try {
                     const eventService = new EventService();
-                    await eventService.delete(item.id).then((response) => {
+                    await eventService.delete(item.id).then(() => {
                       // if (response.success) {
                       //   toast.success("Evento deletado com sucesso");
                       //   fetchEvents(); // Atualiza a lista corretamente

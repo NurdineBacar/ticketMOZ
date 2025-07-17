@@ -23,7 +23,7 @@ export default function AdminNotifications() {
       try {
         // Busque apenas promotores pendentes de aprovação
         const data = await userService.getPendingPromoters();
-        setPromoters([]);
+        setPromoters(data || []);
       } catch {
         toast.error("Erro ao carregar notificações de promotores.");
       } finally {

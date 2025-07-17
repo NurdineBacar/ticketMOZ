@@ -1,4 +1,3 @@
-import MyDataTable from "@/components/my-components/data-table";
 import StatCard from "@/components/my-components/statcard";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,9 +58,7 @@ export default function Home() {
             <CardTitle>Eventos</CardTitle>
             <CardDescription>Faca gestao dos seus eventos</CardDescription>
           </CardHeader>
-          <CardContent>
-            <MyDataTable />
-          </CardContent>
+          <CardContent>{/* <MyDataTable /> */}</CardContent>
         </Card>
       </section>
     </main>
