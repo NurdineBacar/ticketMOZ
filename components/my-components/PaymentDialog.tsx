@@ -43,6 +43,7 @@ interface PaymentDialogProps {
   normalCount: number;
   vipCount: number;
   totalPrice: number;
+  onPaymentSuccess?: () => void;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
@@ -52,6 +53,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   normalCount,
   vipCount,
   totalPrice,
+  onPaymentSuccess,
 }) => {
   const [paymentMethod, setPaymentMethod] = useState("mpesa");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -90,19 +92,34 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     // Simulate payment processing
     setIsProcessing(true);
 
-    const resp = await buyTicketService
-      .buyTiket({
-        qtd_normal: normalCount,
-        qtd_vip: vipCount,
-        total: totalPrice,
-        eventId: event.id + "",
-        payment_method: paymentMethod,
-        phone_number_payment: phoneNumber,
-        user_id: user?.id ?? "",
-      })
-      .finally(() => {
-        setIsProcessing(false);
+    const resp = await buyTicketService.buyTiket({
+      qtd_normal: normalCount,
+      qtd_vip: vipCount,
+      total: totalPrice,
+      eventId: event.id + "",
+      payment_method: paymentMethod,
+      phone_number_payment: phoneNumber,
+      user_id: user?.id ?? "",
+    });
+
+    if (resp.success) {
+      setIsProcessing(false);
+      setPhoneNumber(""); // Resetar campo telefone
+      setShowConfirmation(true); // Abre o dialog de sucesso
+
+      // Fecha dialogs após alguns segundos (opcional)
+      setTimeout(() => {
+        setShowConfirmation(false);
+        onOpenChange(false);
+        if (onPaymentSuccess) onPaymentSuccess();
+      }, 4000);
+    } else {
+      toast.error("Erro!!", {
+        description: resp.message || "Erro no servidor",
       });
+      setIsProcessing(false);
+      console.log(resp);
+    }
 
     console.log(resp);
   };
@@ -110,9 +127,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const closeConfirmation = () => {
     setShowConfirmation(false);
     onOpenChange(false);
-    toast.success(
-      t("ticketsSentEmail") || "Ingressos enviados para seu email."
-    );
+    if (onPaymentSuccess) onPaymentSuccess();
   };
 
   useEffect(() => {
@@ -287,37 +302,24 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
       {/* Confirmation Modal */}
       <AlertDialog open={showConfirmation} onOpenChange={closeConfirmation}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-md flex flex-col items-center justify-center">
           <div className="flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mx-auto mb-4">
             <Check className="h-8 w-8 text-green-600" />
           </div>
-
-          <AlertDialogHeader className="text-center">
-            <AlertDialogTitle className="text-xl">
+          <AlertDialogHeader className="text-center w-full">
+            <AlertDialogTitle className="text-xl w-full">
               {t("paymentSuccessful") || "Pagamento concluído com sucesso!"}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
+            <AlertDialogDescription className="text-center w-full">
               {t("ticketAvailable") ||
-                "Seu ingresso está disponível para download"}
+                "Seus bilhetes foram enviados para o seu email."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-
-          <div className="py-4 text-center">
+          <div className="py-4 text-center w-full">
             <p className="text-sm text-muted-foreground mb-6">
-              {t("ticketSentEmail") ||
-                "Enviamos uma cópia do seu ingresso para seu email"}
+              Verifique seu email para acessar os links dos bilhetes. Você
+              também pode acessar seus bilhetes na sua conta.
             </p>
-
-            <Button
-              onClick={() => {}}
-              variant="outline"
-              size="lg"
-              className="w-full mb-3"
-            >
-              <FileText className="mr-2 h-5 w-5" />
-              {t("downloadTicket") || "Baixar Ingresso (PDF)"}
-            </Button>
-
             <Button
               onClick={closeConfirmation}
               variant="ghost"

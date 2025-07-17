@@ -114,15 +114,16 @@ export default function ScannerPage() {
         }
       } else {
         const erro = {
-          code: "",
+          code: verify.data?.id,
           valid: false,
-          message: "Bilhete inválido!",
+          message: "Bilhete já usado!",
           ticketInfo: {
-            name: "Nome não disponível",
-            type: "Tipo não disponível",
-            event: "Evento não disponível",
-            used: true,
-            usedAt: "Data não disponível",
+            name: verify.data?.user?.name || "Nome não disponível",
+            type: verify.data?.tiketType?.name || "Tipo não disponível",
+            event:
+              verify.data?.tiketType?.ticket?.event?.title ||
+              "Evento não disponível",
+            used: verify.data?.isUsed || false,
           },
         };
 
@@ -139,14 +140,12 @@ export default function ScannerPage() {
     try {
       const resp = await scannerService.scan(code);
 
-      // if (!resp) {
-      //   throw new Error("Resposta inválida do servidor");
-      // }
-
       console.log("Dentro");
       console.log(resp);
 
       if (resp.success) {
+        console.log("True");
+        console.log(resp);
         return {
           code,
           valid: true,
@@ -161,10 +160,12 @@ export default function ScannerPage() {
           },
         };
       } else {
+        console.log("Else");
+        console.log(resp);
         return {
           code,
           valid: false,
-          message: "Bilhete inválido!",
+          message: resp?.message || "Bilhete inválido!",
           ticketInfo: {
             name: resp.data?.user?.name || "Nome não disponível",
             type: resp.data?.tiketType?.name || "Tipo não disponível",

@@ -18,25 +18,56 @@ export class BuyTickets {
         normal_ticket: data.qtd_normal,
         vip_ticket: data.qtd_vip,
         total: data.total,
-        eventId: data.eventId, // Corrigido para eventId
+        eventId: data.eventId,
         payment_method: data.payment_method,
         phone_number_payment: data.phone_number_payment,
-        user_id: data.user_id, // Corrigido para user_id
-        ticketID: data.event?.ticket.id, // Garantir que isso está definido
+        user_id: data.user_id,
+        ticketID: data.event?.ticket.id,
       };
 
-      const resp = await api.post("/ticket/buy-ticket", { data: payload });
+      const payment = await api.post(
+        "http://localhost:4000/ticket/pay",
+        {
+          amount: Number(data.total),
+          phone_number: data.phone_number_payment,
+        },
+        {
+          headers: {
+            Authorization:
+              "Basic cGtfdGVzdF84NzkyMzNiMzgwYjRjMjU3YzAxMzQwNWIyNWNiM2Q5Mzpza190ZXN0XzViODNiZTJlYTlhZTVlZDdiY2ZlZTg2NjI3YmE3YzczMWYzNzVkNzZjY2QxMjI4Ng==",
+            "Content-Type": "application/json",
+          },
+          timeout: 80000,
+        }
+      );
 
-      if (resp.status === 200 || resp.status === 201) {
+      if (payment.data.success) {
+        const resp = await api.post("/ticket/buy-ticket", { data: payload });
+
+        if (resp.status === 200 || resp.status === 201) {
+          return resp.data;
+        }
+
         return resp.data;
+      } else {
+        return {
+          success: false,
+          message: payment.data.message || "Erro interno no servidor",
+        };
       }
-
-      throw new Error(resp.data || "Erro ao processar a requisição");
-    } catch (error) {
+    } catch (error: any) {
       console.log("Erro: ");
       console.log(error);
       console.log("Payload: ");
       console.log(data);
+
+      // Retorna resposta amigável para o frontend
+      return {
+        success: false,
+        message:
+          error?.response?.data?.message ||
+          "Erro interno no servidor. Tente novamente mais tarde.",
+      };
     }
   }
 }

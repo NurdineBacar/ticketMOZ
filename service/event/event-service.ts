@@ -14,6 +14,17 @@ export class EventService {
     }
   }
 
+  async getEventsDash(userID: string): Promise<any> {
+    try {
+      const resp = await api.get(`/event/dash/${userID}`);
+      if (resp.status == 200 || resp.status == 201) {
+        return resp.data;
+      }
+    } catch (error) {
+      throw new Error(error + "");
+    }
+  }
+
   async createEvent(eventData: any) {
     try {
       const response = await api.post("/event/create", eventData);

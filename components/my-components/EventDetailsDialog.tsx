@@ -31,12 +31,14 @@ interface EventDetailsDialogProps {
   event: EventProps;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPaymentSuccess?: () => void;
 }
 
 const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   event,
   open,
   onOpenChange,
+  onPaymentSuccess,
 }) => {
   const [normalCount, setNormalCount] = useState(1);
   const [vipCount, setVipCount] = useState(0);
@@ -110,7 +112,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto w-[95%] mx-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto w-[95%] md:mx-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               {event.title}
@@ -119,7 +121,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="relative h-48 sm:h-60 w-full overflow-hidden rounded-md">
+            <div className="relative h-96 sm:h-[600px] w-full overflow-hidden rounded-md">
               <img
                 src={event.imageUrl}
                 alt={event.title}
@@ -130,7 +132,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex items-center gap-8 flex-wrap">
               <div className="flex items-center gap-2">
                 <Calendar size={20} />
                 <span className="font-medium">{event.date}</span>
@@ -145,12 +147,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                 <Music size={20} />
                 <span>{event.genre}</span>
               </div>
+            </div>
 
-              <div className="flex items-center">
-                <p className="text-justify font-medium first-letter:capitalize">
-                  {event.event?.description}
-                </p>
-              </div>
+            <div className="flex items-center">
+              <p className="text-justify font-normal first-letter:capitalize">
+                {event.event?.description}
+              </p>
             </div>
 
             <div className="space-y-2 border-t pt-4">
@@ -295,6 +297,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         normalCount={normalCount}
         vipCount={vipCount}
         totalPrice={totalPrice}
+        onPaymentSuccess={onPaymentSuccess}
       />
     </>
   );

@@ -148,9 +148,7 @@ export default function MySideBar() {
           )}
         >
           <Ticket />
-          {isCollapsed && (
-            <h2 className="text-xl font-bold mb-1">TicketTMOZ</h2>
-          )}
+          {isCollapsed && <h2 className="text-xl font-bold mb-1">TicketMOZ</h2>}
         </header>
 
         {/* User Section */}

@@ -241,27 +241,29 @@ export default function UpdateEvent() {
     async function fetchEvent() {
       if (typeof eventId === "string") {
         try {
+          console.log("tesssssssste");
           const resp = await eventService.getEventById(eventId);
-          if (resp.success && resp.data) {
-            const event = resp.data;
-            console.log("evvvvvvvvvvvvvvvvv" + event);
-
-            // Definir os valores do formulário
-            form.setValue("title", event.title);
-            form.setValue("description", event.description);
-            form.setValue("date", event.event_date);
-            form.setValue("startTime", event.start_time);
-            form.setValue("endTime", event.end_time);
-            form.setValue("location", event.location);
-            form.setValue("category", event.category);
+          console.log(resp);
+          if (resp) {
+            console.log(event);
+            // Preencher os campos do formulário
+            form.setValue("title", resp.title);
+            form.setValue("description", resp.description);
+            form.setValue("date", resp.resp_date);
+            form.setValue("startTime", resp.start_time);
+            form.setValue("endTime", resp.end_time);
+            form.setValue("location", resp.location);
+            form.setValue("category", resp.category);
 
             // Definir a imagem de preview se existir
-            if (event.image) {
-              setPreviewImage(event.image);
+            if (resp.image_url) {
+              setPreviewImage(resp.image_url);
+            } else if (resp.image) {
+              setPreviewImage(resp.image);
             }
 
             // Definir valores dos tickets (VIP e Normal)
-            event.ticket?.ticketTypes.forEach((ticket: any) => {
+            resp.ticket?.ticketType.forEach((ticket: any) => {
               if (ticket.name === "VIP") {
                 form.setValue("vipTicketPrice", ticket.price);
                 form.setValue("vipTicketQuantity", ticket.quantity);
@@ -286,7 +288,7 @@ export default function UpdateEvent() {
         <header>
           <div className="mb-5 flex justify-between items-center">
             <article className="flex flex-col items-start">
-              <h1 className="text-2xl font-bold">Criar Evento</h1>
+              <h1 className="text-2xl font-bold">Editar Evento</h1>
               <span className="text-base text-gray-500">
                 Preencha os detalhes do seu evento
               </span>
@@ -605,7 +607,7 @@ export default function UpdateEvent() {
                         "Salvando..."
                       ) : (
                         <span className="flex items-center gap-4">
-                          <Save /> Criar evento
+                          <Save /> Salvar alteracoes
                         </span>
                       )}
                     </Button>

@@ -77,10 +77,11 @@ export default function ScannersEvent() {
 
       // Fetch scanners
       const scannersData = await eventService.getScannerByEvetn(eventId);
-      setScanners(scannersData);
+      setScanners(Array.isArray(scannersData) ? scannersData : []);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load data");
+      setScanners([]); // Garante array mesmo em erro
     } finally {
       setIsLoading(false);
     }

@@ -99,7 +99,7 @@ export default function SignUp() {
   const methods = useForm<signUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      user_type: "client",
+      user_type: "cliente",
       company_nuit: undefined as unknown as number,
       company_name: "",
       company_email: "",
@@ -186,7 +186,7 @@ export default function SignUp() {
           <div className="hidden md:block md:w-1/2 lg:w-2/5">
             <div className="relative h-full flex items-center justify-center">
               <img
-                src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800"
+                src="/assets/sign-up.png"
                 alt="Signup"
                 className="rounded-lg shadow-xl max-w-full h-auto"
               />

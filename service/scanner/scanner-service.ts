@@ -8,7 +8,7 @@ export class ScannerService {
       if (resp.status == 200 || resp.status == 201) {
         return resp.data;
       } else {
-        return resp.data.message || "Erro ao verificar";
+        return resp.data;
       }
     } catch (error) {
       throw new Error("Erro ao processar requisicao -> " + error);

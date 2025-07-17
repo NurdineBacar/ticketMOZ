@@ -18,28 +18,56 @@ import { ColumnDef } from "@tanstack/react-table";
 import { columns } from "./COLUMN";
 import { MyDataTable } from "@/components/my-components/data-table";
 import { toast } from "sonner";
+import { User } from "@/types/user";
+import Cookies from "js-cookie";
 
 export default function Events() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>();
   const [error, setError] = useState<string | null>(null);
   const eventService = new EventService();
 
   const fetchEvents = async () => {
     try {
-      const eventsData = await eventService.getEvents();
-      setEvents(eventsData);
+      const response = await eventService.getEventsDash(user!.id);
+      if (response && response.success) {
+        setEvents(
+          Array.isArray(response.data) ? response.data : [response.data]
+        );
+      } else {
+        setEvents([]);
+      }
+      setLoading(false);
     } catch (err) {
       console.error("Erro no componente:", err);
-      setError("Failed to load events");
-    } finally {
+      setError("Erro ao buscar eventos");
       setLoading(false);
     }
   };
   useEffect(() => {
-    fetchEvents();
+    const userCookie = Cookies.get("user");
+    if (userCookie) {
+      try {
+        const parsedUser = JSON.parse(userCookie);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error parsing user cookie:", error);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchEvents();
+    }
+    // Não setar erro se user.id não existe, apenas não faz nada
+  }, [user?.id]);
+
+  useEffect(() => {
+    console.log("Events atualizados:", events);
+  }, [events]);
 
   // Calculate statistics from events data
   // Calculate statistics from events data
@@ -144,14 +172,19 @@ export default function Events() {
                 delete: async (item: any) => {
                   try {
                     const eventService = new EventService();
-                    const response = await eventService.delete(item.id);
+                    await eventService.delete(item.id).then((response) => {
+                      // if (response.success) {
+                      //   toast.success("Evento deletado com sucesso");
+                      //   fetchEvents(); // Atualiza a lista corretamente
+                      // } else {
+                      //   toast.error(
+                      //     response.message || "Erro ao deletar evento"
+                      //   );
+                      // }
 
-                    if (response.success) {
                       toast.success("Evento deletado com sucesso");
-                      fetchEvents(); // Refresh the list
-                    } else {
-                      toast.error(response.message || "Erro ao deletar evento");
-                    }
+                      fetchEvents(); // Atualiza a lista corretamente
+                    });
                   } catch (error) {
                     console.error("Delete error:", error);
                     toast.error("Ocorreu um erro ao deletar o evento");
