@@ -31,6 +31,7 @@ import { EventService } from "@/service/event/event-service";
 import { SalesTicketService } from "@/service/sales/sales-ticket";
 import { Event } from "@/types/event";
 import { SalesTicketType } from "@/types/sales-ticket";
+import { useAuth } from "@/hooks/useAuth";
 
 const COLORS = ["#000000", "#CCCCCC", "#666666", "#999999"];
 
@@ -38,6 +39,7 @@ export default function ReportsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [tickets, setTickets] = useState<SalesTicketType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   // Serviços
   const eventService = new EventService();
@@ -47,9 +49,14 @@ export default function ReportsPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        if (!user) {
+          console.error("ID invalido");
+          return;
+        }
+
         const [eventsData, ticketsData] = await Promise.all([
-          eventService.getEvents(),
-          ticketService.getAll(),
+          eventService.getEventsPromoter(user.id),
+          ticketService.getAllPromoter(user.id),
         ]);
         setEvents(eventsData);
         setTickets(ticketsData);

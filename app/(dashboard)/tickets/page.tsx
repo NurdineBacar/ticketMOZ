@@ -14,63 +14,81 @@ import { useEffect, useState } from "react";
 import { COLUMNS } from "./COLUMN";
 import { SalesTicketService } from "@/service/sales/sales-ticket";
 import { SalesTicketType } from "@/types/sales-ticket";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Ticket() {
   const [salesTicket, setSalesTicket] = useState<SalesTicketType[]>([]);
   const [totalVerifyed, setTotalVerifyed] = useState(0);
+  const [total, setTotal] = useState<number>(0);
+  const { user } = useAuth();
 
   const salesService = new SalesTicketService();
 
   const fetchSales = async () => {
-    await salesService.getAll().then((response) => {
-      setSalesTicket(response);
-    });
+    console.log(user);
+
+    if (!user) {
+      console.error("User ID is not available");
+      return;
+    }
+
+    try {
+      const response = await salesService.getAllPromoter(user.id);
+      setSalesTicket(response || []);
+    } catch (error) {
+      console.error("Error fetching sales:", error);
+      setSalesTicket([]);
+    }
   };
 
-  const [total, setTotal] = useState<number>();
-
   const handleExportCSV = () => {
-    const rows = [
-      [
-        "ID",
-        "Cliente",
-        "Email",
-        "Tipo Bilhete",
-        "Preço",
-        "Verificado",
-        "Data da Venda",
-      ],
-      ...salesTicket.map((t) => [
-        t.id,
-        t.user?.name || "",
-        t.user?.email || "",
-        t.tiketType?.name || "",
-        t.tiketType?.price || "",
-        t.isUsed ? "Sim" : "Não",
-        t.createdAt ? new Date(t.createdAt).toLocaleString("pt-BR") : "",
-      ]),
-    ];
-    const csvContent = rows.map((e) => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vendas.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const rows = [
+        [
+          "ID",
+          "Cliente",
+          "Email",
+          "Tipo Bilhete",
+          "Preço",
+          "Verificado",
+          "Data da Venda",
+        ],
+        ...(salesTicket?.map((t) => [
+          t.id || "",
+          t.user?.name || "",
+          t.user?.email || "",
+          t.tiketType?.name || "",
+          t.tiketType?.price?.toString() || "0",
+          t.isUsed ? "Sim" : "Não",
+          t.createdAt ? new Date(t.createdAt).toLocaleString("pt-BR") : "",
+        ]) || []),
+      ];
+
+      const csvContent = rows.map((e) => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vendas.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      alert("Failed to export CSV");
+    }
   };
 
   useEffect(() => {
     fetchSales();
-  }, []);
+  }, [user?.id]); // Add user.id as dependency
 
   useEffect(() => {
     const totalVendas = salesTicket.reduce(
-      (acc, curr) => acc + (curr.tiketType.price || 0),
+      (acc, curr) => acc + (curr.tiketType?.price || 0),
       0
     );
 
-    const tverifyed = salesTicket.filter((t) => t.isUsed == true).length;
+    const tverifyed = salesTicket.filter((t) => t.isUsed === true).length;
     setTotalVerifyed(tverifyed);
     setTotal(totalVendas);
   }, [salesTicket]);
@@ -90,13 +108,13 @@ export default function Ticket() {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-5">
         <MyCard
           title="Total Bilhetes"
-          value={salesTicket.length.toString() || "N/A"}
+          value={salesTicket.length?.toString() ?? "0"}
         />
         <MyCard
           title="Vendidos"
-          value={salesTicket.length.toString() || "N/A"}
+          value={salesTicket.length?.toString() ?? "0"}
         />
-        <MyCard title="Verificados" value={totalVerifyed.toString() || "N/A"} />
+        <MyCard title="Verificados" value={totalVerifyed?.toString() ?? "0"} />
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total vendas</CardTitle>
@@ -116,7 +134,7 @@ export default function Ticket() {
             <CardDescription>Gira todos os seus bilhetes</CardDescription>
           </CardHeader>
           <CardContent>
-            <MyDataTable columns={COLUMNS} data={salesTicket} />
+            <MyDataTable columns={COLUMNS} data={salesTicket || []} />
           </CardContent>
         </Card>
       </section>

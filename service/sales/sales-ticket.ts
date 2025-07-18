@@ -13,4 +13,21 @@ export class SalesTicketService {
       throw new Error("Erro ao processar requisicao -> " + error);
     }
   }
+
+  async getAllPromoter(userID: string) {
+    try {
+      const resp = await api.get(`/ticket/list-sales/${userID}`);
+      if (resp.status === 200 || resp.status === 201) {
+        if (resp.data.success) {
+          return resp.data;
+        }
+
+        return [];
+      }
+
+      throw new Error("Error ao carregar dados -> " + resp.data);
+    } catch (error) {
+      throw new Error("Erro ao processar requisicao -> " + error);
+    }
+  }
 }

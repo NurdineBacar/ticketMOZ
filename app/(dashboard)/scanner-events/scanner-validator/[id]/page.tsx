@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
-import { Html5Qrcode } from "html5-qrcode";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +14,7 @@ import { BadgeCheck, XCircle, QrCode } from "lucide-react";
 import { ScannerService } from "@/service/scanner/scanner-service";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import { Html5Qrcode } from "html5-qrcode";
 
 type TicketValidation = {
   code: string;
@@ -40,15 +39,15 @@ export default function ScannerPage() {
   const [validatedTickets, setValidatedTickets] = useState<TicketValidation[]>(
     []
   );
-  const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const scannerService = new ScannerService();
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
+  const isInitialMount = useRef(true);
 
   const startScanner = async () => {
     try {
       setIsScanning(true);
-      setError(null);
+      setScanResult(null);
 
       const html5Qrcode = new Html5Qrcode("qr-reader");
       html5QrcodeRef.current = html5Qrcode;
@@ -62,22 +61,12 @@ export default function ScannerPage() {
         async (decodedText) => {
           await handleScanSuccess(decodedText);
         },
-        (errorMessage) => {
-          // Só mostra toast se não for o erro padrão de "not found"
-          if (
-            !errorMessage.includes(
-              "No MultiFormat Readers were able to detect the code"
-            )
-          ) {
-            setError(errorMessage);
-            toast.error("Erro ao ler o QR Code");
-          }
-          // Não faz nada se for o erro padrão de não encontrar código
+        () => {
+          // Empty error callback to prevent default error handling
         }
       );
     } catch (err) {
       console.error("Error starting scanner:", err);
-      setError("Erro ao iniciar o scanner");
       setIsScanning(false);
     }
   };
@@ -98,14 +87,11 @@ export default function ScannerPage() {
   const handleScanSuccess = async (decodedText: string) => {
     try {
       setScanResult(decodedText);
-      await stopScanner(); // Para o scanner imediatamente após a leitura
+      await stopScanner();
 
       const verify = await scannerService.verify(decodedText);
       if (verify.success) {
-        console.log(verify);
         const result = await validateTicket(decodedText);
-        console.log("Fora");
-        console.log(result);
         setValidation(result);
         setDialogOpen(true);
 
@@ -126,7 +112,6 @@ export default function ScannerPage() {
             used: verify.data?.isUsed || false,
           },
         };
-
         setValidation(erro);
         setDialogOpen(true);
       }
@@ -140,12 +125,7 @@ export default function ScannerPage() {
     try {
       const resp = await scannerService.scan(code);
 
-      console.log("Dentro");
-      console.log(resp);
-
       if (resp.success) {
-        console.log("True");
-        console.log(resp);
         return {
           code,
           valid: true,
@@ -160,8 +140,6 @@ export default function ScannerPage() {
           },
         };
       } else {
-        console.log("Else");
-        console.log(resp);
         return {
           code,
           valid: false,
@@ -189,33 +167,41 @@ export default function ScannerPage() {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    stopScanner(); // Garante que o scanner está fechado
+    startScanner(); // Restart scanner after dialog closes
   };
 
-  const fecthTickets = async () => {
+  const fetchTickets = async () => {
     if (eventId) {
-      await scannerService.getScannedTicket(eventId).then((response) => {
-        console.log(response);
-        setTickets(response.data); // Garante array
-      });
-    } else {
-      console.error("eventId is undefined");
+      try {
+        const response = await scannerService.getScannedTicket(eventId);
+        setTickets(response.data || []);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      }
     }
   };
 
   useEffect(() => {
-    if (isScanning) {
-      const qrDiv = document.getElementById("qr-reader");
-      if (qrDiv) {
-        startScanner();
-      }
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    if (isScanning) {
+      startScanner();
+    } else {
+      stopScanner();
+    }
+
+    return () => {
+      stopScanner();
+    };
   }, [isScanning]);
 
   useEffect(() => {
-    fecthTickets();
+    fetchTickets();
   }, []);
+
   return (
     <main className="flex flex-col items-center px-4 py-8 min-h-screen bg-gray-50">
       <Card className="w-full max-w-xl mb-8">
@@ -233,14 +219,13 @@ export default function ScannerPage() {
                 <div id="qr-reader" className="w-full"></div>
                 <Button
                   variant="outline"
-                  onClick={stopScanner}
+                  onClick={() => setIsScanning(false)}
                   className="mt-2"
                 >
                   Cancelar Scanner
                 </Button>
               </>
             )}
-            {error && <div className="text-red-500 text-sm">{error}</div>}
             {isScanning && (
               <span className="text-gray-500 text-sm">
                 Aponte a câmera para o QR Code do bilhete
@@ -297,7 +282,9 @@ export default function ScannerPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
-            <Button onClick={startScanner}>Escanear outro bilhete</Button>
+            <Button onClick={() => setIsScanning(true)}>
+              Escanear outro bilhete
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -308,7 +295,7 @@ export default function ScannerPage() {
           <CardTitle>Bilhetes validados</CardTitle>
         </CardHeader>
         <CardContent>
-          {!tickets || tickets.length === 0 ? (
+          {tickets.length === 0 ? (
             <div className="text-gray-400">Nenhum bilhete validado ainda.</div>
           ) : (
             <ul className="space-y-2">
