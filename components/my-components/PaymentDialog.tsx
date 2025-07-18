@@ -107,6 +107,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     //   userID: user?.id ?? "",
     // });
 
+    // verificacao
     if (resp.success) {
       setIsProcessing(false);
       setPhoneNumber(""); // Resetar campo telefone
