@@ -12,6 +12,14 @@ import { EventService } from "@/service/event/event-service";
 import { useEffect, useState } from "react";
 import { EventProps } from "./localEvent";
 import CardEvent from "@/components/my-components/card-event";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Home() {
   const t = useTranslation();
@@ -137,7 +145,7 @@ export default function Home() {
                 </div>
 
                 {/* Pagination component */}
-                {/* {totalPages > 1 && (
+                {totalPages > 1 && (
                   <div className="mt-8">
                     <Pagination>
                       <PaginationContent>
@@ -170,7 +178,7 @@ export default function Home() {
                       </PaginationContent>
                     </Pagination>
                   </div>
-                )} */}
+                )}
               </>
             ) : (
               <div className="text-center py-10">

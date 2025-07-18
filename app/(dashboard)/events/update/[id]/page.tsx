@@ -202,12 +202,13 @@ export default function UpdateEvent() {
       }
 
       const eventService = new EventService();
-      const resp = await eventService.createEvent({
+      const resp = await eventService.updateEvent({
+        id: eventId,
         title: data.title,
         description: data.description,
         category: data.category,
         location: data.location,
-        image: imageUrl, // Isso é um File
+        image: imageUrl,
         event_date: data.date,
         start_time: data.startTime,
         end_time: data.endTime,
@@ -217,12 +218,10 @@ export default function UpdateEvent() {
         },
       });
 
-      console.log("Event created:", resp);
       if (resp.success) {
         useRouter().replace("/events");
       } else {
         console.error("Failed to create event:", resp.message);
-        // Mostrar mensagem de erro para o usuário
       }
       form.reset();
       setPreviewImage(null);

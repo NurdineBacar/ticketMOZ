@@ -5,12 +5,12 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  QrCode,
   Ticket,
   User,
   Menu,
   X,
   SquareDashedBottom,
+  LogOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -35,16 +35,11 @@ export default function MySideBar() {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [routes, setRoutes] = useState<NavLinks[] | []>([]);
-  const [loading, setLoading] = useState(true);
 
   const promotor = [
     { to: "/events", icon: <Calendar size={20} />, label: "Eventos" },
     { to: "/tickets", icon: <Ticket size={20} />, label: "Bilhetes" },
-    {
-      to: "/reports",
-      icon: <FileText size={20} />,
-      label: "Relatorios",
-    },
+    { to: "/reports", icon: <FileText size={20} />, label: "Relatorios" },
     { to: "/profile", icon: <User size={20} />, label: "Perfil" },
   ];
 
@@ -94,7 +89,6 @@ export default function MySideBar() {
         case "master-admin":
           setRoutes(masterAdmin);
           break;
-
         case "cliente":
           setRoutes(client);
           break;
@@ -103,6 +97,7 @@ export default function MySideBar() {
       }
     }
   }, [user]);
+
   return (
     <>
       {/* Mobile Navbar */}
@@ -132,11 +127,11 @@ export default function MySideBar() {
       <aside
         className={cn(
           "fixed flex flex-col bg-sidebar h-screen border-r transition-all duration-300 z-50",
-          "lg:w-64 lg:relative", // Desktop styles
-          "w-64", // Base width
-          "max-lg:fixed max-lg:top-14 max-lg:left-0 max-lg:transform", // Mobile positioning
-          mobileMenuOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full", // Mobile toggle
-          isCollapsed ? "lg:w-64" : "lg:w-16" // Desktop collapsed state
+          "lg:w-64 lg:relative",
+          "w-64",
+          "max-lg:fixed max-lg:top-14 max-lg:left-0 max-lg:transform",
+          mobileMenuOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full",
+          isCollapsed ? "lg:w-64" : "lg:w-16"
         )}
       >
         {/* Desktop Header */}
@@ -144,7 +139,7 @@ export default function MySideBar() {
           className={cn(
             "flex gap-2 border-b h-14 items-center",
             isCollapsed ? "lg:pl-6" : "lg:justify-center",
-            "max-lg:hidden" // Hide on mobile
+            "max-lg:hidden"
           )}
         >
           <Ticket />
@@ -156,7 +151,7 @@ export default function MySideBar() {
           className={cn(
             "h-20 border-b flex items-center",
             isCollapsed ? "lg:pl-6" : "lg:justify-center",
-            "max-lg:hidden" // Hide on mobile
+            "max-lg:hidden"
           )}
         >
           <div className="bg-black w-9 h-9 rounded-full flex items-center justify-center">
@@ -190,7 +185,7 @@ export default function MySideBar() {
           className={cn(
             "absolute left-60 z-50 top-10 transition-all duration-300",
             isCollapsed ? "left-60" : "left-12",
-            "max-lg:hidden" // Hide on mobile
+            "max-lg:hidden"
           )}
         >
           <Button
@@ -208,17 +203,18 @@ export default function MySideBar() {
           </Button>
         </div>
 
-        {/* Logout Button */}
-        <div className="border-t w-full h-20 p-4 mt-auto">
+        {/* Logout Button - Fixed */}
+        <div className="border-t w-full p-4 mt-auto relative bottom-14 md:bottom-auto">
           <Button
             variant={"outline"}
-            className="w-full"
+            className="w-full gap-2"
             onClick={() => {
               signOut();
               router.replace("/");
             }}
           >
-            Terminar sessão
+            <LogOut size={16} />
+            {isCollapsed && "Terminar sessão"}
           </Button>
         </div>
       </aside>

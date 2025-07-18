@@ -14,7 +14,7 @@ export const COLUMN: ColumnDef<any>[] = [
   {
     accessorKey: "status",
     header: "Estado",
-    cell: ({ row }) => "Activo",
+    cell: () => "Activo",
   },
   // {
   //   accessorKey: "entry_date",

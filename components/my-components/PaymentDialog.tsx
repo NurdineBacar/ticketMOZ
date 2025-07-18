@@ -306,7 +306,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             <Check className="h-8 w-8 text-green-600" />
           </div>
           <AlertDialogHeader className="text-center w-full">
-            <AlertDialogTitle className="text-xl w-full">
+            <AlertDialogTitle className="text-xl w-full text-center">
               {t("paymentSuccessful") || "Pagamento concluído com sucesso!"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center w-full">
@@ -316,13 +316,12 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
           </AlertDialogHeader>
           <div className="py-4 text-center w-full">
             <p className="text-sm text-muted-foreground mb-6">
-              Verifique seu email para acessar os links dos bilhetes. Você
-              também pode acessar seus bilhetes na sua conta.
+              Verifique seu email para acessar os links dos bilhetes e poder
+              baixa-los se desejar.
             </p>
             <Button
               onClick={closeConfirmation}
-              variant="ghost"
-              size="sm"
+              variant="default"
               className="w-full"
             >
               {t("close") || "Fechar"}

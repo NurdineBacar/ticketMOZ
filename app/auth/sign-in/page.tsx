@@ -27,7 +27,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "@/lib/axios";
-import logo from "@/assets/Login.svg";
 import { jwtDecode } from "jwt-decode";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -45,10 +44,6 @@ export default function SignIn() {
   const t = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const { signIn } = useAuth();
-  //   const location = useLocation();
-  //   const redirectTo = location.state?.redirectTo;
-  //   const eventId = location.state?.eventId;
-  //   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -58,6 +53,10 @@ export default function SignIn() {
       password: "",
     },
   });
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
@@ -72,7 +71,6 @@ export default function SignIn() {
         const jwt: any = jwtDecode(json.token);
         signIn(jwt?.user, json);
 
-        // Verifica se veio de um convite
         const redirect = searchParams.get("redirect");
         if (redirect) {
           router.replace(redirect);
@@ -84,7 +82,6 @@ export default function SignIn() {
         toast.error(response.data.message || "Erro ao processar login");
       }
     } catch (error: any) {
-      // Mostra mensagem de erro se email ou senha estiverem errados
       const message =
         error?.response?.data?.message ||
         "Email ou senha incorretos. Tente novamente.";
@@ -97,7 +94,6 @@ export default function SignIn() {
   return (
     <div className="flex items-center justify-center min-h-screen auth-container px-4">
       <div className="flex w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden">
-        {/* Imagem do lado esquerdo */}
         <div className="w-1/2 bg-gray-100 relative hidden md:block">
           <div className="w-full h-full flex items-center justify-center p-8">
             <img
@@ -105,7 +101,6 @@ export default function SignIn() {
               alt="Login Illustration"
               className="max-w-full max-h-full object-contain"
               onError={(e) => {
-                // Fallback to a text message if image fails to load
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
                 target.parentElement!.innerHTML =
@@ -115,14 +110,10 @@ export default function SignIn() {
           </div>
         </div>
 
-        {/* Formulário de login */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-8">
           <Card className="w-full border-2">
             <CardHeader className="space-y-1 text-center">
               <CardTitle className="text-2xl font-bold">{t("login")}</CardTitle>
-              {/* <CardDescription>
-                Entre com seu email e senha para acessar sua conta
-              </CardDescription> */}
             </CardHeader>
             <CardContent className="space-y-4">
               <Form {...form}>
@@ -151,11 +142,11 @@ export default function SignIn() {
                   />
 
                   <FormField
-                    // control={form.control}
+                    control={form.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center flex-wrap-reverse gap-3 md:gap-0 justify-between">
                           <FormLabel htmlFor="password">
                             {t("password")}
                           </FormLabel>
@@ -170,7 +161,7 @@ export default function SignIn() {
                           <div className="relative">
                             <Input
                               id="password"
-                              //   type={showPassword ? "text" : "password"}
+                              type={showPassword ? "text" : "password"}
                               placeholder="••••••••"
                               className="pr-10"
                               {...field}
@@ -178,14 +169,18 @@ export default function SignIn() {
                             />
                             <button
                               type="button"
-                              //   onClick={togglePasswordVisibility}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                              //   aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
+                              onClick={togglePasswordVisibility}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                              aria-label={
+                                showPassword
+                                  ? "Esconder senha"
+                                  : "Mostrar senha"
+                              }
                             >
                               {showPassword ? (
-                                <EyeOff className="h-4 w-4 text-gray-500" />
+                                <EyeOff className="h-4 w-4" />
                               ) : (
-                                <Eye className="h-4 w-4 text-gray-500" />
+                                <Eye className="h-4 w-4" />
                               )}
                             </button>
                           </div>

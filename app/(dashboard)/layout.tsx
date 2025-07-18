@@ -36,7 +36,7 @@ export default function DashLayouy({
           <div className="flex items-center gap-4">
             {/* Add Language Selector to header for easy access */}
             {/* <LanguageSelector position="relative" className="" /> */}
-            <Button>Language selector</Button>
+            {/* <Button>Language selector</Button> */}
 
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">

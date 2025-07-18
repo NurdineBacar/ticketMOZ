@@ -14,6 +14,8 @@ import { EventService } from "@/service/event/event-service";
 import { toast } from "sonner";
 import { MyDataTable } from "@/components/my-components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { Eye, QrCode } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type UserType = {
   id: string;
@@ -69,6 +71,7 @@ export default function AdminDashboard() {
     "all" | "cliente" | "promotor" | "scanner"
   >("all");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const userService = new UserService();
   const eventService = new EventService();
@@ -267,6 +270,20 @@ export default function AdminDashboard() {
                             onClick={() => handleUnblockUser(row.original.id)}
                           >
                             Desbloquear
+                          </Button>
+                        )}
+
+                        {row.original.user_type == "promotor" && (
+                          <Button
+                            variant={"ghost"}
+                            className="border"
+                            onClick={() =>
+                              router.push(
+                                `report-admin/event/${row.original.id}`
+                              )
+                            }
+                          >
+                            <Eye />
                           </Button>
                         )}
                       </div>
