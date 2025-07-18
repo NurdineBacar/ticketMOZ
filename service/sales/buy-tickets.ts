@@ -70,4 +70,38 @@ export class BuyTickets {
       };
     }
   }
+
+  async payAlternative(data: any): Promise<any> {
+    const resp = await api.post(
+      "/ticket/pay-alternative",
+      {
+        amount: Number(data.total),
+        phone_number: data.phone_number_payment,
+        userID: data.userID,
+      },
+      {
+        headers: {
+          "X-API-KEY": process.env.NEXT_PUBLIC_X_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (resp.data.success) {
+      const confirmPayment = await api.post(
+        "/ticket/confirm-alternative",
+        {
+          paymentID: resp.data.data.id,
+        },
+        {
+          headers: {
+            "X-API-KEY": process.env.NEXT_PUBLIC_X_API_KEY,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return confirmPayment.data;
+    }
+  }
 }

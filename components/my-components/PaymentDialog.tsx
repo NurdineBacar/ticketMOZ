@@ -101,6 +101,12 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       user_id: user?.id ?? "",
     });
 
+    // const resp = await buyTicketService.payAlternative({
+    //   total: totalPrice,
+    //   phone_number_payment: phoneNumber,
+    //   userID: user?.id ?? "",
+    // });
+
     if (resp.success) {
       setIsProcessing(false);
       setPhoneNumber(""); // Resetar campo telefone
