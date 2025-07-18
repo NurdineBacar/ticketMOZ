@@ -2,23 +2,22 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  password: string;
   user_type: string;
-  token?: string;
-  company?: Company;
-  isVerify?: boolean;
+  isVerify: boolean;
   createdAt: string;
-  updatedAt?: string;
-  SalesTickets: SalesTickets[];
+  updatedAt: string;
+  company: Company;
+  SalesTickets: any[];
 }
 
-// Defina Company e SalesTickets conforme seus modelos
 export interface Company {
   id: string;
-  // ...outros campos relevantes...
-}
-
-export interface SalesTickets {
-  id: string;
-  // ...outros campos relevantes...
+  name: string;
+  email: string;
+  phone_number: string;
+  nuit_url: string;
+  isVerify: boolean;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -54,11 +54,12 @@ export default function MySideBar() {
       icon: <SquareDashedBottom size={20} />,
       label: "Painel Adminstrador",
     },
-    {
-      to: "/admin-notifications",
-      icon: <FileText size={20} />,
-      label: "Notificações",
-    },
+    { to: "/profile", icon: <User size={20} />, label: "Perfil" },
+    // {
+    //   to: "/admin-notifications",
+    //   icon: <FileText size={20} />,
+    //   label: "Notificações",
+    // },
   ];
 
   const client = [
