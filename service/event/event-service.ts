@@ -49,16 +49,13 @@ export class EventService {
     }
   }
 
-  async updateEvent(eventData: any) {
+  async updateEvent(eventID: string, eventData: any) {
     try {
-      const response = await api.put(
-        `/event/update/${eventData?.id}`,
-        eventData
-      );
-      if (response.status === 201) {
+      const response = await api.put(`/event/update/${eventID}`, eventData);
+      if (response.status === 201 || response.status == 200) {
         return response.data; // Retorna os dados do evento criado
       }
-      throw new Error(response.data.message || "Erro ao criar evento");
+      throw new Error(response.data.message || "Erro ao atualizar evento");
     } catch (error) {
       console.error("Erro no EventService:", error);
       throw error; // Rejeita o erro para ser tratado no componente

@@ -20,7 +20,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { EventService } from "@/service/event/event-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Label } from "@radix-ui/react-label";
 import { Save, Trash, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,6 +28,17 @@ import Cookies from "js-cookie";
 import { User } from "@/types/user";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { eventCategories } from "@/consts/fake_categories";
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
@@ -74,10 +84,12 @@ const createEventSchema = z.object({
   vipTicketQuantity: z.coerce.number().optional(),
   image: z
     .any()
-    .refine((file) => file?.size <= MAX_FILE_SIZE, {
+    .refine((file) => !file || file?.size <= MAX_FILE_SIZE, {
+      // Added !file to allow undefined
       message: "O tamanho máximo da imagem é 5MB.",
     })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file?.type), {
+    .refine((file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type), {
+      // Added !file to allow undefined
       message: "Apenas .jpg, .jpeg e .png são aceitos.",
     })
     .optional(),
@@ -90,6 +102,8 @@ export default function UpdateEvent() {
   const eventId = param.id as string | undefined;
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [initialImageUrl, setInitialImageUrl] = useState<string | null>(null); // New state to store the original image URL
+  const router = useRouter();
 
   const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
@@ -118,12 +132,16 @@ export default function UpdateEvent() {
         setPreviewImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+    } else {
+      form.setValue("image", undefined); // Clear the file input if no file is selected
+      setPreviewImage(initialImageUrl); // Revert to the initial image if the user clears the selection
     }
   };
 
   const removeImage = () => {
     form.setValue("image", undefined);
     setPreviewImage(null);
+    setInitialImageUrl(null); // Clear initial image URL as well if the user explicitly removes it
   };
 
   const uploadImageToCloudinary = async (file: File): Promise<string> => {
@@ -154,7 +172,6 @@ export default function UpdateEvent() {
       return response.data.secure_url;
     } catch (error) {
       if (error instanceof Error) {
-        // AxiosError may have a 'response' property
         const axiosError = error as any;
         console.error(
           "Erro no upload:",
@@ -176,13 +193,20 @@ export default function UpdateEvent() {
       const userParsed = userCookie ? (JSON.parse(userCookie) as User) : null;
       console.log("User from cookies:", userParsed?.company?.id);
 
-      let imageUrl = "";
+      let imageUrl = initialImageUrl; // Start with the initial image URL
       if (data.image) {
+        // If a new image is selected, upload it
         imageUrl = await uploadImageToCloudinary(data.image);
-        console.log("Imagem enviada, URL:", imageUrl);
+        console.log("New image uploaded, URL:", imageUrl);
+      } else if (previewImage === null && initialImageUrl !== null) {
+        // If the user explicitly removed the image (previewImage is null) and there was an initial image, set imageUrl to empty to clear it
+        imageUrl = "";
+      } else if (previewImage === null && initialImageUrl === null) {
+        // If there was no initial image and no new image, imageUrl remains null/empty
+        imageUrl = "";
       }
 
-      // Preparar os tipos de ticket
+      // Prepare ticket types
       const ticketTypes = [];
 
       if (data.vipTicketPrice && data.vipTicketQuantity) {
@@ -201,14 +225,18 @@ export default function UpdateEvent() {
         });
       }
 
+      if (!eventId) {
+        console.error("ID inválido");
+        return;
+      }
+
       const eventService = new EventService();
-      const resp = await eventService.updateEvent({
-        id: eventId,
+      const resp = await eventService.updateEvent(eventId, {
         title: data.title,
         description: data.description,
         category: data.category,
         location: data.location,
-        image: imageUrl,
+        image: imageUrl, // Use the determined imageUrl
         event_date: data.date,
         start_time: data.startTime,
         end_time: data.endTime,
@@ -219,17 +247,15 @@ export default function UpdateEvent() {
       });
 
       if (resp.success) {
-        useRouter().replace("/events");
+        router.replace("/events");
       } else {
-        console.error("Failed to create event:", resp.message);
+        console.error(resp.message);
       }
-      form.reset();
-      setPreviewImage(null);
-
-      // Mostrar mensagem de sucesso ou redirecionar
+      // form.reset(); // You might not want to reset the form on update success, as it clears all fields.
+      // setPreviewImage(null); // This should be handled by fetchEvent or not reset if you want to keep the image preview after update.
     } catch (error) {
-      console.error("Error submitting form:", error);
-      // Mostrar mensagem de erro para o usuário
+      console.error(error);
+      // Show error message to the user
     } finally {
       setLoading(false);
     }
@@ -240,28 +266,29 @@ export default function UpdateEvent() {
     async function fetchEvent() {
       if (typeof eventId === "string") {
         try {
-          console.log("tesssssssste");
           const resp = await eventService.getEventById(eventId);
-          console.log(resp);
           if (resp) {
-            console.log(event);
-            // Preencher os campos do formulário
+            console.log(resp); // Changed 'event' to 'resp' for consistency
+            // Fill form fields
             form.setValue("title", resp.title);
             form.setValue("description", resp.description);
-            form.setValue("date", resp.resp_date);
+            form.setValue("date", resp.event_date.split("T")[0]);
             form.setValue("startTime", resp.start_time);
             form.setValue("endTime", resp.end_time);
             form.setValue("location", resp.location);
             form.setValue("category", resp.category);
 
-            // Definir a imagem de preview se existir
-            if (resp.image_url) {
-              setPreviewImage(resp.image_url);
-            } else if (resp.image) {
-              setPreviewImage(resp.image);
+            // Set preview image and initial image URL
+            const fetchedImageUrl = resp.image_url || resp.image || null;
+            if (fetchedImageUrl) {
+              setPreviewImage(fetchedImageUrl);
+              setInitialImageUrl(fetchedImageUrl); // Store the original URL
+            } else {
+              setPreviewImage(null);
+              setInitialImageUrl(null);
             }
 
-            // Definir valores dos tickets (VIP e Normal)
+            // Set ticket values (VIP and Normal)
             resp.ticket?.ticketType.forEach((ticket: any) => {
               if (ticket.name === "VIP") {
                 form.setValue("vipTicketPrice", ticket.price);
@@ -279,7 +306,7 @@ export default function UpdateEvent() {
     }
 
     fetchEvent();
-  }, [eventId, form]); // Adicione 'form' como dependência
+  }, [eventId, form]);
 
   return (
     <ScrollArea className="px-5 h-[90vh]">
@@ -419,11 +446,26 @@ export default function UpdateEvent() {
                           <FormItem>
                             <FormLabel>Categoria</FormLabel>
                             <FormControl>
-                              <Input
-                                type="text"
-                                placeholder="Categoria do evento"
-                                {...field}
-                              />
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
+                                {" "}
+                                {/* Added value prop to Select */}
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Selecione uma categoria" />
+                                </SelectTrigger>
+                                <SelectContent className="w-full">
+                                  <SelectGroup>
+                                    <SelectLabel>Categorias</SelectLabel>
+                                    {eventCategories.map((item) => (
+                                      <SelectItem value={item} key={item}>
+                                        {item}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -606,7 +648,7 @@ export default function UpdateEvent() {
                         "Salvando..."
                       ) : (
                         <span className="flex items-center gap-4">
-                          <Save /> Salvar alteracoes
+                          <Save /> Salvar alterações
                         </span>
                       )}
                     </Button>

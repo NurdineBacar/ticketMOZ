@@ -16,9 +16,6 @@ import {
   MinusCircle,
   PlusCircle,
 } from "lucide-react";
-// import { useNavigate } from 'react-router-dom';
-// import { useAuth } from '@/contexts/AuthContext';
-// import { useLanguage } from '@/contexts/LanguageContext';
 import PaymentDialog from "./PaymentDialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -42,28 +39,20 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   const [normalCount, setNormalCount] = useState(1);
   const [vipCount, setVipCount] = useState(0);
   const [paymentOpen, setPaymentOpen] = useState(false);
-  // const { user } = useAuth();
-  // const navigate = useNavigate();
   const router = useRouter();
-  // const { t, language } = useLanguage();
   const t = useTranslation();
 
-  // Check if event has VIP tickets available (mocked here, would come from API in real app)
-  const hasVipTickets = true; // For demo purposes, assuming all events have VIP tickets
+  // Safely get ticket prices with fallbacks
+  const normalTicket = event.event?.ticket?.ticketType?.find(
+    (t) => t.name === "Normal"
+  );
+  const vipTicket = event.event?.ticket?.ticketType?.find(
+    (t) => t.name === "VIP"
+  );
 
-  // Convert price to MZN if not already
-  const formatPrice = (price: string) => {
-    if (price.includes("R$")) {
-      // Extract number from R$ format and convert to MZN
-      const numericPrice = Number(price.replace(/[^0-9]/g, ""));
-      return `${numericPrice} ${t("currency")}`;
-    }
-    return price;
-  };
-
-  // Calculate base price from the string (e.g., "150 MZN" -> 150)
-  const basePrice = event.event?.ticket.ticketType[1].price ?? 0;
-  const vipPrice = event.event?.ticket.ticketType[0]?.price ?? 0;
+  const basePrice = normalTicket?.price ?? 0;
+  const vipPrice = vipTicket?.price ?? 0;
+  const hasVipTickets = vipPrice > 0;
 
   const totalNormalPrice = basePrice * normalCount;
   const totalVipPrice = vipPrice * vipCount;
@@ -93,18 +82,8 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     setPaymentOpen(true);
   };
 
-  const handlePurchase = () => {
-    console.log("NOrmal: " + normalCount);
-    console.log("Normal price: " + basePrice);
-    console.log("VIP: " + vipCount);
-    console.log("VIP PRice: " + vipPrice);
-    console.log(event.event);
-
-    // if (!user) {
-    //   // Redirect to login with return path info
-    //   router.push(`${!user ? "/login" : "/lading/" + event.id}`);
-    //   return;
-    // }
+  const formatPrice = (price: number) => {
+    return `${price} ${t("currency")}`;
   };
 
   return (
@@ -119,44 +98,60 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="relative h-96 sm:h-[600px] w-full overflow-hidden rounded-md">
-              <img
-                src={event.imageUrl}
-                alt={event.title}
-                className="object-cover w-full h-full"
-              />
-              <div className="absolute top-2 right-2 bg-black text-white px-3 py-1 rounded-full text-xs">
-                {event.genre}
+            {event.imageUrl ? (
+              <div className="relative h-96 sm:h-[600px] w-full overflow-hidden rounded-md">
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="object-cover w-full h-full"
+                />
+                {event.genre && (
+                  <div className="absolute top-2 right-2 bg-black text-white px-3 py-1 rounded-full text-xs">
+                    {event.genre}
+                  </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="h-96 sm:h-[600px] w-full bg-gray-100 rounded-md flex items-center justify-center">
+                No image available
+              </div>
+            )}
 
             <div className="flex items-center gap-8 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Calendar size={20} />
-                <span className="font-medium">{event.date}</span>
-              </div>
+              {event.date && (
+                <div className="flex items-center gap-2">
+                  <Calendar size={20} />
+                  <span className="font-medium">{event.date}</span>
+                </div>
+              )}
 
-              <div className="flex items-center gap-2">
-                <MapPin size={20} />
-                <span>{event.location}</span>
-              </div>
+              {event.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin size={20} />
+                  <span>{event.location}</span>
+                </div>
+              )}
 
-              <div className="flex items-center gap-2">
-                <Music size={20} />
-                <span>{event.genre}</span>
-              </div>
+              {event.genre && (
+                <div className="flex items-center gap-2">
+                  <Music size={20} />
+                  <span>{event.genre}</span>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center">
-              <p className="text-justify font-normal first-letter:capitalize">
-                {event.event?.description}
-              </p>
-            </div>
+            {event.event?.description && (
+              <div className="flex items-center">
+                <p className="text-justify font-normal first-letter:capitalize">
+                  {event.event.description}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2 border-t pt-4">
               <h3 className="font-bold text-lg">{t("selectTickets")}:</h3>
 
-              {/* Normal Ticket Selection - Always available */}
+              {/* Normal Ticket Selection */}
               <div className="border rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
                   <div>
@@ -165,11 +160,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                       {t("standardEntry")}
                     </p>
                   </div>
-                  <div className="font-bold">
-                    {formatPrice(
-                      event.event?.ticket.ticketType[1].price.toString() ?? ""
-                    )}
-                  </div>
+                  <div className="font-bold">{formatPrice(basePrice)}</div>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -198,7 +189,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               </div>
 
               {/* VIP Ticket Selection - Only show if available */}
-              {vipPrice > 0 && (
+              {hasVipTickets && (
                 <div className="border rounded-lg p-4 bg-muted/50">
                   <div className="flex justify-between items-center mb-3">
                     <div>
@@ -207,9 +198,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                         {t("premiumAccess")}
                       </p>
                     </div>
-                    <div className="font-bold">
-                      {`${vipPrice.toFixed(0)} ${t("currency")}`}
-                    </div>
+                    <div className="font-bold">{formatPrice(vipPrice)}</div>
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -248,9 +237,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                     <span>
                       {normalCount}x {t("normalTicket")}
                     </span>
-                    <span>
-                      {totalNormalPrice} {t("currency")}
-                    </span>
+                    <span>{formatPrice(totalNormalPrice)}</span>
                   </div>
                 )}
                 {hasVipTickets && vipCount > 0 && (
@@ -258,16 +245,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                     <span>
                       {vipCount}x {t("vipTicket")}
                     </span>
-                    <span>
-                      {totalVipPrice} {t("currency")}
-                    </span>
+                    <span>{formatPrice(totalVipPrice)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold pt-2 border-t">
                   <span>{t("total")}</span>
-                  <span>
-                    {totalPrice} {t("currency")}
-                  </span>
+                  <span>{formatPrice(totalPrice)}</span>
                 </div>
               </div>
             </div>
@@ -287,7 +270,6 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Payment Dialog */}
       <PaymentDialog
         open={paymentOpen}
         onOpenChange={setPaymentOpen}
