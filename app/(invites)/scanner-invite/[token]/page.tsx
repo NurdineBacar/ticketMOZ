@@ -94,14 +94,15 @@ export default function Invite() {
 
       const resp = await eventService.acceptInviteScanner(token, user?.id);
 
+      console.log("dados da requiscao:");
+      console.log(resp);
+
       if (resp.success) {
-        toast.success("Sucesso", {
-          description: "Oraaaaaaaaaaaaa",
-        });
+        toast.success("Aceito o convite com sucesso!!!");
         setAccepted(true);
       } else {
-        console.log(resp);
-        setLoading(false);
+        setAccepted(false);
+        toast.error(resp.message || "Erro ao acietar convite!!!");
       }
     } catch (err: any) {
       setError("Erro ao aceitar convite.");

@@ -11,7 +11,7 @@ interface SignInResult {
 export async function signIn(credentials: LoginData): Promise<SignInResult> {
   try {
     const response = await api.post<ApiResponse<UserData>>(
-      "/login",
+      "login",
       credentials
     );
     const { data, success, message } = response.data;

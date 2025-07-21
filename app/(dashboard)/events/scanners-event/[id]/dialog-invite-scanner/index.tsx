@@ -43,7 +43,7 @@ export default function InviteScanner({ event }: InviteScannerProps) {
 
   useEffect(() => {
     const user = Cookies.get("user");
-    const inviteUrl = `http://localhost:3000/scanner-invite/${event?.inviteScanner?.token}`;
+    const inviteUrl = `${process.env.NEXT_PORT}/scanner-invite/${event?.inviteScanner?.token}`;
 
     if (!user) {
       router.push(`/auth/sign-in?redirect=${encodeURIComponent(inviteUrl)}`);
@@ -96,7 +96,7 @@ export default function InviteScanner({ event }: InviteScannerProps) {
   const copyToClipboard = async () => {
     if (!evento?.inviteScanner?.token) return;
 
-    const url = `https://ticket-moz-seven.vercel.app/scanner-invite/${evento.inviteScanner.token}`;
+    const url = `${process.env.NEXT_PORT}/scanner-invite/${evento.inviteScanner.token}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Link copiado para a área de transferência!");

@@ -112,7 +112,7 @@ export class EventService {
       });
 
       if (resp.status != 400) {
-        return resp.data.data;
+        return resp.data;
       } else {
         return resp.data.message || "Erro ao aceitar o convite";
       }
