@@ -5,4 +5,7 @@ export const eventCategories = [
   "Eletrônica",
   "Hip Hop",
   "Amapiano",
+  "Marrabenta",
+  "Semba",
+  "Mapico",
 ];
