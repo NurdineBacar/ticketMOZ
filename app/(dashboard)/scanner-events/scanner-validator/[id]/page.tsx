@@ -68,6 +68,8 @@ export default function ScannerPage() {
     } catch (err) {
       console.error("Error starting scanner:", err);
       setIsScanning(false);
+    } finally {
+      fetchTickets();
     }
   };
 
@@ -118,6 +120,8 @@ export default function ScannerPage() {
     } catch (err) {
       console.error("Error processing QR code:", err);
       toast.error("Erro ao processar o bilhete");
+    } finally {
+      fetchTickets();
     }
   };
 
@@ -162,6 +166,8 @@ export default function ScannerPage() {
         valid: false,
         message: "Erro ao validar o bilhete",
       };
+    } finally {
+      fetchTickets();
     }
   };
 
@@ -250,7 +256,7 @@ export default function ScannerPage() {
                 </span>
               )}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="flex justify-start">
               {validation?.message}
               {validation?.ticketInfo && (
                 <div className="mt-4 space-y-2">
