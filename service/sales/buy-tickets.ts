@@ -26,7 +26,7 @@ export class BuyTickets {
       };
 
       const payment = await api.post(
-        "http://localhost:4000/ticket/pay",
+        "/ticket/pay",
         {
           amount: Number(data.total),
           phone_number: data.phone_number_payment,
