@@ -140,7 +140,7 @@ export function MyDataTable<TData, TValue>({
                 ))}
                 {hasActions && (
                   <TableHead>
-                    <div className="flex justify-end">Ações</div>
+                    <div className="bg-amber-300">Ações</div>
                   </TableHead>
                 )}
               </TableRow>

@@ -96,7 +96,9 @@ export default function InviteScanner({ event }: InviteScannerProps) {
   const copyToClipboard = async () => {
     if (!evento?.inviteScanner?.token) return;
 
-    const url = `${process.env.NEXT_PORT}/scanner-invite/${evento.inviteScanner.token}`;
+    const url = `${
+      process.env.NEXT_PORT || "http://ticket-moz-seven.vercel.app"
+    }/scanner-invite/${evento.inviteScanner.token}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Link copiado para a área de transferência!");
@@ -132,12 +134,12 @@ export default function InviteScanner({ event }: InviteScannerProps) {
                   {!isSubmitting && (
                     <div className="flex items-center gap-2 mt-2">
                       <a
-                        href={`http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`}
+                        href={`http://ticket-moz-seven.vercel.app/scanner-invite/${evento.inviteScanner.token}`}
                         className="text-blue-500 underline break-all"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {`http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`}
+                        {`http://ticket-moz-seven.vercel.app/scanner-invite/${evento.inviteScanner.token}`}
                       </a>
                     </div>
                   )}

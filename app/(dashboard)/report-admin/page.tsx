@@ -14,9 +14,11 @@ import { EventService } from "@/service/event/event-service";
 import { toast } from "sonner";
 import { MyDataTable } from "@/components/my-components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, QrCode } from "lucide-react";
+import { Eye, QrCode, User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { User } from "@/types/user";
+import { UserDetailsDialog } from "@/components/my-components/hover-datails";
+
 type UserType = {
   id: string;
   name: string;
@@ -89,8 +91,8 @@ export default function AdminDashboard() {
         userService.getAll(),
         eventService.getEvents(),
       ]);
-      setUsers(usersData || []);
-      setEvents(eventsData || []);
+      setUsers(usersData);
+      setEvents(eventsData);
     } catch {
       toast.error("Erro ao carregar dados do admin");
     } finally {
@@ -136,18 +138,15 @@ export default function AdminDashboard() {
     }
   };
 
-  // Estatísticas protegidas contra undefined
-  const totalUsers = users?.length ?? 0;
-  const totalPromoters =
-    users?.filter((u) => u.user_type === "promotor").length ?? 0;
-  const totalClients =
-    users?.filter((u) => u.user_type === "cliente").length ?? 0;
-  const totalBlocked = users?.filter((u) => !u.isVerify).length ?? 0;
-  const totalEvents = events?.length ?? 0;
-  const promotersToApprove =
-    users?.filter(
-      (u) => u.user_type === "promotor" && u.company?.isVerify === false
-    ).length ?? 0;
+  // Estatísticas rápidas
+  const totalUsers = users.length;
+  const totalPromoters = users.filter((u) => u.user_type === "promotor").length;
+  const totalClients = users.filter((u) => u.user_type === "cliente").length;
+  const totalBlocked = users.filter((u) => !u.isVerify).length;
+  const totalEvents = events.length ?? 0;
+  const promotersToApprove = users.filter(
+    (u) => u.user_type === "promotor" && u.company?.isVerify === false
+  ).length;
 
   if (loading) {
     return (
@@ -248,11 +247,17 @@ export default function AdminDashboard() {
                   ...userColumns,
                   {
                     id: "actions",
-                    header: "Ações",
+                    header: "",
                     cell: ({ row }) => {
                       const user = row.original;
                       return (
-                        <div className="flex gap-2 justify-center">
+                        <div className="flex gap-2 justify-end">
+                          <UserDetailsDialog user={user}>
+                            <Button variant="ghost" className="border">
+                              <UserIcon size={25} />
+                            </Button>
+                          </UserDetailsDialog>
+
                           {user.user_type === "promotor" &&
                             user.company?.isVerify === false && (
                               <Button
