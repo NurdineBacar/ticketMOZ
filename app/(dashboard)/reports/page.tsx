@@ -85,6 +85,7 @@ export default function ReportsPage() {
 
   // Gráfico de vendas por dia
   const salesByDayData = (() => {
+    if (!Array.isArray(tickets)) return []; // Add this check
     const map: { [date: string]: number } = {};
     tickets.forEach((t) => {
       const date = new Date(t.createdAt).toLocaleDateString("pt-BR");
@@ -103,23 +104,28 @@ export default function ReportsPage() {
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   })();
 
-  // Performance por evento (apenas eventos com vendas)
-  const eventPerformanceData = events
-    .map((event) => {
-      const eventTickets = tickets.filter(
-        (t) => t.tiketType?.ticket?.event?.id === event.id && t.tiketType
-      );
-      const revenue = eventTickets.reduce(
-        (acc, curr) => acc + (curr.tiketType?.price || 0),
-        0
-      );
-      return {
-        name: event.title,
-        tickets: eventTickets.length,
-        revenue,
-      };
-    })
-    .filter((event) => event.tickets > 0); // Filtra apenas eventos com vendas
+  // Performance por evento
+  const eventPerformanceData = Array.isArray(events)
+    ? events
+        .map((event) => {
+          const eventTickets = Array.isArray(tickets)
+            ? tickets.filter(
+                (t) =>
+                  t.tiketType?.ticket?.event?.id === event.id && t.tiketType
+              )
+            : [];
+          const revenue = eventTickets.reduce(
+            (acc, curr) => acc + (curr.tiketType?.price || 0),
+            0
+          );
+          return {
+            name: event.title,
+            tickets: eventTickets.length,
+            revenue,
+          };
+        })
+        .filter((event) => event.tickets > 0)
+    : [];
 
   // Top eventos por tickets vendidos (apenas eventos com vendas)
   const topEvents = [...eventPerformanceData]
