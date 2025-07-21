@@ -139,7 +139,10 @@ export default function InviteScanner({ event }: InviteScannerProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {`http://ticket-moz-seven.vercel.app/scanner-invite/${evento.inviteScanner.token}`}
+                        {`http://ticket-moz-seven.vercel.app/scanner-invite/${evento.inviteScanner.token.substring(
+                          0,
+                          25
+                        )}...`}
                       </a>
                     </div>
                   )}

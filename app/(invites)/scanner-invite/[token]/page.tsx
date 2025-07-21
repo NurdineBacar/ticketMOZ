@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { Event } from "@/types/event";
 import { User } from "@/types/user";
 import Cookies from "js-cookie";
+import { Label } from "@/components/ui/label";
+import { TicketX } from "lucide-react";
 
 export default function Invite() {
   const searchParams = useSearchParams();
@@ -111,6 +113,19 @@ export default function Invite() {
     }
   };
 
+  if (user?.user_type != "scanner") {
+    return (
+      <main className="flex flex-col gap-3 items-center justify-center w-screen h-screen">
+        <Label className="text-3xl font-bold text-red-500">
+          <TicketX size={40} /> Ops... Algo deu Errado
+        </Label>
+        <span className="font-semibold text-gray-400">
+          So Scanner podem aceder essa pagina
+        </span>
+      </main>
+    );
+  }
+
   if (loading) {
     return (
       <main className="flex items-center justify-center min-h-screen">
@@ -167,8 +182,8 @@ export default function Invite() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div>
-            <span className="font-medium">Promotor:</span>
-            {inviteInfo.invitedBy}
+            <span className="font-medium">Promotor: </span>
+            {evento?.company.user.name}
           </div>
           <Button onClick={handleAccept} className="w-full">
             Aceitar convite

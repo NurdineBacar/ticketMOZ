@@ -35,7 +35,7 @@ export default function Ticket() {
 
     try {
       const response = await salesService.getAllPromoter(user.id);
-      setSalesTicket(response || []);
+      setSalesTicket(response.data || []);
       console.log("Resposta");
       console.log(response);
     } catch (error) {
