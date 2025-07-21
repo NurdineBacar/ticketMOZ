@@ -61,6 +61,15 @@ export default function SignIn() {
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
     try {
+      const verify = await api.get(`/auth/verify-user/${data.email}`);
+      console.log(verify.data);
+      if (verify.status == 200 || verify.status == 201) {
+        if (verify.data.success == false) {
+          toast.error(verify.data.message || "Erro ao verificar utilizador");
+          return;
+        }
+      }
+
       const response = await api.post("/auth/sign-in", {
         email: data.email,
         password: data.password,
@@ -104,7 +113,7 @@ export default function SignIn() {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
                 target.parentElement!.innerHTML =
-                  '<div class="text-center p-8"><h2 class="text-xl font-bold">MozTicket</h2><p class="text-muted-foreground">Eficiência e segurança para seus eventos</p></div>';
+                  '<div class="text-center p-8"><h2 class="text-xl font-bold">TicketMOZ</h2><p class="text-muted-foreground">Eficiência e segurança para seus eventos</p></div>';
               }}
             />
           </div>

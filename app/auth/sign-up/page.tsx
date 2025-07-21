@@ -114,7 +114,7 @@ export default function SignUp() {
   const onSubmit = async (data: signUpFormValues) => {
     setLoading(true);
     try {
-      const response = await api.post("/user/create", {
+      const response = await api.post("/user/create-email", {
         name: data.name,
         email: data.email,
         user_type: data.user_type,
@@ -127,20 +127,18 @@ export default function SignUp() {
         },
       });
 
+      console.log("Dados mandados:");
+      console.log(data);
       const json = response.data;
       if (!json.success) {
         // toast("Erro", {
         //   description: json.message,
         // });
 
-        toast.error("Erro", {
-          description: json.message,
-        });
+        toast.error(json.message ?? "Erro!!");
         return;
       } else {
-        toast.success("Sucesso", {
-          description: "Utilizaor cadastrado com sucesso!",
-        });
+        toast.success("Email enviado com sucesso!!!");
         router.replace("/auth/sign-in");
       }
     } catch (error) {
@@ -257,7 +255,7 @@ export default function SignUp() {
                                   <FormControl>
                                     <Input
                                       id="company-name"
-                                      placeholder="MozTicket Eventos Ltda."
+                                      placeholder="TicketMOZ Eventos Ltda."
                                       {...field}
                                       required
                                       className={"h-10"}
@@ -482,10 +480,24 @@ export default function SignUp() {
                         />
                       </div>
 
-                      <p className="text-sm text-muted-foreground mt-2">
+                      {/* <p className="text-sm text-muted-foreground mt-2 hidden">
                         Contas de administrador só podem ser criadas por outros
                         administradores.
-                      </p>
+                      </p> */}
+                      <ol
+                        type="1"
+                        className="text-sm text-muted-foreground mt-2 list-decimal pl-5"
+                      >
+                        <li>
+                          {" "}
+                          Contas de administrador só podem ser criadas por
+                          outros administradores.
+                        </li>
+                        <li>
+                          Ao criar a conta, será enviado um email para confirmar
+                          o cadastro.
+                        </li>
+                      </ol>
 
                       <Button
                         type="submit"

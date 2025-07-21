@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   // Permitir sempre a home
-  if (pathname === "/") {
+  if (pathname === "/" || pathname.includes("/user-registe/")) {
     return NextResponse.next();
   }
 

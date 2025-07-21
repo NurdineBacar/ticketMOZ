@@ -68,6 +68,67 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const buyTicketService = new BuyTickets();
   const [user, setUser] = useState<UserType | null>(null);
 
+  // const handlePayment = async () => {
+  //   if (!phoneNumber.trim()) {
+  //     alert("Por favor, insira um número de telefone válido");
+  //     toast.error(
+  //       t("enterPhoneNumber") ||
+  //         "Por favor, insira um número de telefone válido"
+  //     );
+  //     return;
+  //   }
+
+  //   // Phone validation (basic Mozambique mobile format)
+  //   const phonePattern = /^(84|85)[0-9]{7}$/;
+  //   if (!phonePattern.test(phoneNumber)) {
+  //     toast.error(
+  //       t("invalidPhoneFormat") ||
+  //         "Formato de número inválido. Use formato: 84/85 seguido de 7 dígitos"
+  //     );
+  //     return;
+  //   }
+
+  //   // Simulate payment processing
+  //   setIsProcessing(true);
+
+  //   const resp = await buyTicketService.buyTiket({
+  //     qtd_normal: normalCount,
+  //     qtd_vip: vipCount,
+  //     total: totalPrice,
+  //     eventId: event.id + "",
+  //     payment_method: paymentMethod,
+  //     phone_number_payment: phoneNumber,
+  //     user_id: user?.id ?? "",
+  //   });
+
+  //   // const resp = await buyTicketService.payAlternative({
+  //   //   total: totalPrice,
+  //   //   phone_number_payment: phoneNumber,
+  //   //   userID: user?.id ?? "",
+  //   // });
+
+  //   // verificacao
+  //   if (resp.success) {
+  //     setIsProcessing(false);
+  //     setPhoneNumber(""); // Resetar campo telefone
+  //     setShowConfirmation(true); // Abre o dialog de sucesso
+
+  //     // Fecha dialogs após alguns segundos (opcional)
+  //     setTimeout(() => {
+  //       setShowConfirmation(false);
+  //       onOpenChange(false);
+  //       if (onPaymentSuccess) onPaymentSuccess();
+  //     }, 4000);
+  //   } else {
+  //     toast.error("Erro!!", {
+  //       description: resp.message || "Erro no servidor",
+  //     });
+  //     setIsProcessing(false);
+  //     console.log(resp);
+  //   }
+
+  //   console.log(resp);
+  // };
   const handlePayment = async () => {
     if (!phoneNumber.trim()) {
       alert("Por favor, insira um número de telefone válido");
@@ -128,6 +189,77 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     }
 
     console.log(resp);
+  };
+
+  const paymentmethod1 = async () => {
+    if (!user) return;
+    try {
+      const body = {
+        amount: totalPrice,
+        currency: "MZN",
+        customerId: user.id,
+        method: {
+          type: "MPESA",
+          phone: `258${phoneNumber}`,
+        },
+      };
+
+      const response = await fetch("http://64.23.143.176:8090/api/payments", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": "6wSvVzZec9Ba465pwcu_w9SvdILbFsJgbF7gjoHUWhA",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      console.log("Response:", response);
+      if (response.ok) {
+        // Aqui você pode processar a resposta da API
+        const data = await response.json();
+        const id = data.id;
+        console.log("Dados recebidos:", data);
+        console.log("ID recebido:", id);
+        console.log("ID enviado para confirmpayment:", id);
+
+        toast.success("Sucesso!!!");
+      } else {
+        const errorText = await response.text();
+        console.error("Erro da API:", errorText);
+        toast.error(response.status);
+      }
+    } catch (error) {
+      toast.error(`Erro ao enviar requisição: ${String(error)}`);
+    }
+  };
+
+  const confirmpayment = async (id: string) => {
+    console.log("ID recebido:", id);
+    try {
+      const response = await fetch(
+        `http://64.23.143.176:8090/api/payments/${id}/confirm`,
+        {
+          method: "POST",
+          headers: {
+            "X-API-KEY": "6wSvVzZec9Ba465pwcu_w9SvdILbFsJgbF7gjoHUWhA",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Dados recebidos:", data);
+
+        toast.success("Sucesso!!! Transação enviada com sucesso");
+        return;
+      } else {
+        const errorText = await response.text();
+        console.error("Erro da API:", errorText);
+
+        toast.error(`Falha!!! Erro na transação: ${response.status}`);
+      }
+    } catch (error) {
+      toast.error(`Erro!!! Erro ao enviar requisição: ${String(error)}`);
+    }
   };
 
   const closeConfirmation = () => {

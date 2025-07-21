@@ -5,15 +5,31 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/hooks/hook-langauge";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
   const isMobile = useIsMobile();
   const t = useTranslation();
+  const router = useRouter();
+  const { user } = useAuth();
 
   const scrollToEvents = () => {
     const eventsSection = document.getElementById("events-section");
     if (eventsSection) {
       eventsSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handlePromoterEvent = () => {
+    if (!user) {
+      return "Utiliozador invlido";
+    }
+
+    if (user.user_type != "promotor") {
+      router.push("/auth/sign-up");
+    } else {
+      router.push("/events/create");
     }
   };
 
@@ -38,11 +54,11 @@ const Hero = () => {
               </Button>
               <Button
                 variant="outline"
-                asChild
                 size={isMobile ? "lg" : "default"}
-                className="bg-black"
+                className="bg-transparent text-white border border-white hover:cursor-pointer"
+                onClick={handlePromoterEvent}
               >
-                <Link href="/signup">{t("registerEvent")}</Link>
+                {t("registerEvent")}
               </Button>
             </div>
           </div>

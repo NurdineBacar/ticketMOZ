@@ -99,7 +99,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
           <div className="space-y-6">
             {event.imageUrl ? (
-              <div className="relative h-96 sm:h-[600px] w-full overflow-hidden rounded-md">
+              <div className="relative h-[480px] sm:h-[600px] w-full overflow-hidden rounded-md">
                 <img
                   src={event.imageUrl}
                   alt={event.title}

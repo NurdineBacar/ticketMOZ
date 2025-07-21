@@ -91,7 +91,7 @@ export const ptTranslations = {
   promoter: "Promotor",
   scanner: "Validador",
   companyName: "Nome da Empresa",
-  companyNameExample: "MozTicket Eventos Lda.",
+  companyNameExample: "TicketMOZ Eventos Lda.",
   taxId: "Nuit",
   taxIdExample: "123456789",
   idNumber: "Número do Documento",
@@ -124,8 +124,8 @@ export const ptTranslations = {
   currency: "MT",
 
   // Landing Header
-  companyNameHeader: "MozTicket",
-  aboutTitle: "Sobre a MozTicket",
+  companyNameHeader: "TicketMOZ",
+  aboutTitle: "Sobre a TicketMOZ",
   aboutDescription:
     "A plataforma completa para gestão de eventos em Moçambique",
   ourMission: "A Nossa Missão",
@@ -133,7 +133,7 @@ export const ptTranslations = {
     "Conectar pessoas a experiências incríveis através de uma plataforma segura e fiável para compra de bilhetes e gestão de eventos.",
   whoWeAre: "Quem Somos",
   whoWeAreText:
-    "A MozTicket é uma startup moçambicana focada em revolucionar o mercado de eventos no país. A nossa plataforma integra toda a jornada do evento: da criação e promoção à venda de bilhetes e controlo de acesso.",
+    "A TicketMOZ é uma startup moçambicana focada em revolucionar o mercado de eventos no país. A nossa plataforma integra toda a jornada do evento: da criação e promoção à venda de bilhetes e controlo de acesso.",
   ourValues: "Os Nossos Valores",
 
   // Landing Header - User Account
@@ -148,7 +148,7 @@ export const ptTranslations = {
   // Landing Hero
   heroMainTitle: "Eventos que Transformam Experiências",
   heroSubText:
-    "Descobre, reserva e desfruta dos melhores eventos. A MozTicket conecta promotores, clientes e controlo de acesso numa experiência integrada.",
+    "Descobre, reserva e desfruta dos melhores eventos. A TicketMOZ conecta promotores, clientes e controlo de acesso numa experiência integrada.",
   exploreEvents: "Explorar Eventos",
   registerEvent: "Promover eventos",
 

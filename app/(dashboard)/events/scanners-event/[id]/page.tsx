@@ -54,7 +54,11 @@ export default function ScannersEvent() {
   }, [eventId]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center  pt-8">
+        <span>Carregando...</span>
+      </div>
+    );
   }
 
   return (

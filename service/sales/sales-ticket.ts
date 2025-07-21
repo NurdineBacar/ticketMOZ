@@ -18,11 +18,7 @@ export class SalesTicketService {
     try {
       const resp = await api.get(`/ticket/list-sales/${userID}`);
       if (resp.status === 200 || resp.status === 201) {
-        if (resp.data.success) {
-          return resp.data;
-        }
-
-        return [];
+        return resp.data;
       }
 
       throw new Error("Error ao carregar dados -> " + resp.data);

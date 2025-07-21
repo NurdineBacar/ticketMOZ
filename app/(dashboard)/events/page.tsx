@@ -18,16 +18,22 @@ import { MyDataTable } from "@/components/my-components/data-table";
 import { toast } from "sonner";
 import { User } from "@/types/user";
 import Cookies from "js-cookie";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Events() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>();
   const [error, setError] = useState<string | null>(null);
   const eventService = new EventService();
 
+  const { user } = useAuth();
+
   const fetchEvents = async () => {
+    if (!user) {
+      setEvents([]);
+      return "ID invalido";
+    }
     try {
       const response = await eventService.getEventsDash(user!.id);
       if (response && response.success) {
@@ -40,21 +46,10 @@ export default function Events() {
       setLoading(false);
     } catch (err) {
       console.error("Erro no componente:", err);
-      setError("Erro ao buscar eventos");
+      // setError("Erro ao buscar eventos");
       setLoading(false);
     }
   };
-  useEffect(() => {
-    const userCookie = Cookies.get("user");
-    if (userCookie) {
-      try {
-        const parsedUser = JSON.parse(userCookie);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Error parsing user cookie:", error);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (user?.id) {

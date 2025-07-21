@@ -15,6 +15,7 @@ import { COLUMNS } from "./COLUMN";
 import { SalesTicketService } from "@/service/sales/sales-ticket";
 import { SalesTicketType } from "@/types/sales-ticket";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 export default function Ticket() {
   const [salesTicket, setSalesTicket] = useState<SalesTicketType[]>([]);
@@ -35,6 +36,8 @@ export default function Ticket() {
     try {
       const response = await salesService.getAllPromoter(user.id);
       setSalesTicket(response || []);
+      console.log("Resposta");
+      console.log(response);
     } catch (error) {
       console.error("Error fetching sales:", error);
       setSalesTicket([]);
@@ -80,7 +83,7 @@ export default function Ticket() {
 
   useEffect(() => {
     fetchSales();
-  }, [user?.id]); // Add user.id as dependency
+  }, [user]);
 
   useEffect(() => {
     const totalVendas = salesTicket.reduce(
@@ -101,7 +104,15 @@ export default function Ticket() {
           <span className="text-gray-500">Gira seus bilhetes</span>
         </div>
 
-        <Button onClick={handleExportCSV}>
+        <Button
+          onClick={handleExportCSV}
+          disabled={salesTicket.length > 0 ? false : true}
+          className={cn(
+            salesTicket.length > 0
+              ? "hover:cursor-pointer"
+              : "hover:cursor-not-allowed"
+          )}
+        >
           <Download /> Exportar CSV
         </Button>
       </header>
@@ -120,7 +131,7 @@ export default function Ticket() {
             <CardTitle className="text-sm font-medium">Total vendas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-4xl font-bold">
+            <div className="text-lg font-bold">
               MZN {total?.toLocaleString("en-US") ?? "0.00"}
             </div>
           </CardContent>

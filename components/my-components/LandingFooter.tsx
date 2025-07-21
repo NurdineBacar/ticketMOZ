@@ -69,7 +69,7 @@ const LandingFooter = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">{t("contact")}</h3>
             <p className="text-gray-400 mb-2">
-              {t("email")}: contato@mozticket.com
+              {t("email")}: contato@ticketmoz.com
             </p>
             <p className="text-gray-400 mb-2">{t("phone")}: +258 84 999-9999</p>
           </div>
@@ -77,7 +77,7 @@ const LandingFooter = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
           <p>
-            &copy; {new Date().getFullYear()} MozTicket. {t("copyrightText")}
+            &copy; {new Date().getFullYear()} TicketMOZ. {t("copyrightText")}
           </p>
         </div>
       </div>

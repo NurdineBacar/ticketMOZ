@@ -92,7 +92,7 @@ export const enTranslations = {
   promoter: "Promoter",
   scanner: "Scanner",
   companyName: "Company Name",
-  companyNameExample: "MozTicket Events Ltd.",
+  companyNameExample: "TicketMOZ Events Ltd.",
   taxId: "Tax ID",
   taxIdExample: "123456789",
   idNumber: "ID Number",
@@ -124,15 +124,15 @@ export const enTranslations = {
   currency: "MZN",
 
   // Landing Header
-  companyNameHeader: "MozTicket",
-  aboutTitle: "About MozTicket",
+  companyNameHeader: "TicketMOZ",
+  aboutTitle: "About TicketMOZ",
   aboutDescription: "The complete platform for event management in Mozambique",
   ourMission: "Our Mission",
   missionText:
     "Connecting people to amazing experiences through a secure and reliable platform for ticket purchasing and event management.",
   whoWeAre: "Who We Are",
   whoWeAreText:
-    "MozTicket is a Mozambican startup focused on revolutionizing the event market in the country. Our platform integrates the entire event journey: from creation and promotion to ticket sales and access control.",
+    "TicketMOZ is a Mozambican startup focused on revolutionizing the event market in the country. Our platform integrates the entire event journey: from creation and promotion to ticket sales and access control.",
   ourValues: "Our Values",
 
   // Landing Header - User Account
@@ -147,7 +147,7 @@ export const enTranslations = {
   // Landing Hero
   heroMainTitle: "Events that Transform Experiences",
   heroSubText:
-    "Discover, book and enjoy the best events. MozTicket connects promoters, customers and access control in an integrated experience.",
+    "Discover, book and enjoy the best events. TicketMOZ connects promoters, customers and access control in an integrated experience.",
   exploreEvents: "Explore Events",
   registerEvent: "Promote events",
 

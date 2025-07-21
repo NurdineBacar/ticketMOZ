@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,25 +23,32 @@ type InviteScannerProps = {
   event: Event | undefined;
 };
 
+interface InviteScannerResponse {
+  link: string;
+  inviteScanner: {
+    token: string;
+    // Add other properties if they exist in the response
+  };
+}
+
 export default function InviteScanner({ event }: InviteScannerProps) {
   const eventService = new EventService();
   const params = useParams();
   const eventId = params.id as string | undefined;
   const [totalScanners, setTotalScanners] = useState<number>(0);
-  const [evento, setEvento] = useState<Event | null>();
+  const [evento, setEvento] = useState<Event | null>(event || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  async function fectEvent() {
-    if (typeof eventId === "string") {
-      const resp = await eventService.getEventById(eventId);
-      // You can use resp here as needed
-      setEvento(resp);
-    } else {
-      console.error("Invalid eventId:", eventId);
+  useEffect(() => {
+    const user = Cookies.get("user");
+    const inviteUrl = `http://localhost:3000/scanner-invite/${event?.inviteScanner?.token}`;
+
+    if (!user) {
+      router.push(`/auth/sign-in?redirect=${encodeURIComponent(inviteUrl)}`);
     }
-  }
+  }, [event, router]);
 
   const invite = async () => {
     if (!eventId) {
@@ -54,16 +63,30 @@ export default function InviteScanner({ event }: InviteScannerProps) {
 
     try {
       setIsSubmitting(true);
-      await eventService
-        .inviteScanner(eventId, totalScanners)
-        .then((response) => {
-          toast.success(`${totalScanners} scanner(s) invited successfully!`);
-          console.log(response);
-        });
+      const response = (await eventService.inviteScanner(
+        eventId,
+        totalScanners
+      )) as InviteScannerResponse;
 
-      router.refresh();
+      // Update local state safely
+      setEvento((prev) => {
+        if (!prev) return null;
+
+        return {
+          ...prev,
+          inviteScanner: {
+            ...(prev.inviteScanner || {}), // Safely spread existing or empty object
+            ...response, // Add/update with new properties
+          },
+        };
+      });
+
+      toast.success(
+        `${totalScanners} Link de convite de Scanner criado com sucesso`
+      );
+      location.reload();
     } catch (error) {
-      toast.error("Failed to invite scanners");
+      toast.error("Falha ao criar link de convite");
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -73,28 +96,16 @@ export default function InviteScanner({ event }: InviteScannerProps) {
   const copyToClipboard = async () => {
     if (!evento?.inviteScanner?.token) return;
 
-    const url = `http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`;
+    const url = `https://ticket-moz-seven.vercel.app/scanner-invite/${evento.inviteScanner.token}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Link copiado para a área de transferência!");
+      setIsOpen(false); // Close dialog after copying
     } catch (error) {
       toast.error("Falha ao copiar o link");
       console.error(error);
     }
   };
-
-  useEffect(() => {
-    const user = Cookies.get("user");
-    const inviteUrl = `http://localhost:3000/scanner-invite/${event?.inviteScanner?.token}`;
-
-    if (!user) {
-      router.push(`/auth/sign-in?redirect=${encodeURIComponent(inviteUrl)}`);
-    }
-  }, [event, router]);
-
-  useEffect(() => {
-    fectEvent();
-  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -109,24 +120,27 @@ export default function InviteScanner({ event }: InviteScannerProps) {
           <DialogTitle>
             Convite de scanners do evento: {event?.title}
           </DialogTitle>
-          {/* Removido DialogDescription e substituído por div */}
           <div className="text-sm text-muted-foreground">
-            {evento && evento.inviteScanner ? (
+            {evento?.inviteScanner ? (
               <div className="mt-4">
-                <div className="rounded p-3 bg-neutral-200">
+                <div className="rounded p-3 bg-neutral-200 dark:bg-neutral-800">
                   <Label className="mb-2">
-                    Copie o link abaixo e partilhe com seus scanners:
+                    {isSubmitting
+                      ? "Gerando link..."
+                      : "Copie o link abaixo e partilhe com seus scanners:"}
                   </Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <a
-                      href={evento.inviteScanner.token}
-                      className="text-blue-500 underline break-all"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {`http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`}
-                    </a>
-                  </div>
+                  {!isSubmitting && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <a
+                        href={`http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`}
+                        className="text-blue-500 underline break-all"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {`http://localhost:3000/scanner-invite/${evento.inviteScanner.token}`}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -141,13 +155,14 @@ export default function InviteScanner({ event }: InviteScannerProps) {
                   min="1"
                   placeholder="Número de scanners"
                   onChange={(e) => setTotalScanners(Number(e.target.value))}
+                  disabled={isSubmitting}
                 />
               </div>
             )}
           </div>
         </DialogHeader>
         <DialogFooter>
-          {evento && evento.inviteScanner ? (
+          {evento?.inviteScanner ? (
             <Button onClick={copyToClipboard}>Copiar Link</Button>
           ) : (
             <Button

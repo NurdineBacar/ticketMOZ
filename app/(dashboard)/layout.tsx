@@ -20,6 +20,11 @@ export default function DashLayouy({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
 
+  useEffect(() => {
+    if (user && user.company && user.company.isVerify == null) {
+      router.push("/");
+    }
+  }, []);
   return (
     <main className="flex flex-col md:flex-row w-screen">
       <aside>

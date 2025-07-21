@@ -8,19 +8,46 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
+import { UserService } from "@/service/user/user-service";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
+import { loginSuccess } from "@/lib/redux/slices/auth";
+import { useDispatch } from "react-redux";
 
 export default function Profile() {
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState(user?.name || "");
   const [bio, setBio] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("pt");
+  const userService = new UserService();
+  const dispatch = useDispatch();
 
   if (!user) return null;
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     // In a real implementation, this would update the user's profile
     console.log("Profile updated", { displayName, bio, preferredLanguage });
+
+    const response = await userService.updateName(user.id, displayName);
+
+    if (response.success) {
+      toast.error("Successoa o atualizar dados do utilizador", {
+        className: "bg-green-500 text-white",
+      });
+
+      Cookies.set("user", JSON.stringify(response.data));
+
+      // Atualizar Redux
+      dispatch(loginSuccess(response.data));
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      toast.error("Successoa o atualizar dados do utilizador", {
+        className: "bg-red-500 text-white",
+      });
+    }
   };
 
   const getInitials = (name: string) => {
@@ -75,6 +102,9 @@ export default function Profile() {
                         id="name"
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
+                        disabled={
+                          user.user_type == "master-admin" ? true : false
+                        }
                       />
                     </div>
 
@@ -95,7 +125,9 @@ export default function Profile() {
                             ? "Comprador"
                             : user.user_type === "promotor"
                             ? "Promotor"
-                            : "Scanner"
+                            : user.user_type === "scanner"
+                            ? "Scanner"
+                            : "Master - Admin"
                         }
                         disabled
                       />
@@ -128,12 +160,13 @@ export default function Profile() {
                     <option value="en">English</option>
                   </select>
                 </div> */}
-
-                <div className="flex justify-end">
-                  <Button onClick={handleUpdateProfile}>
-                    Salvar alterações
-                  </Button>
-                </div>
+                {user.user_type != "master-admin" && (
+                  <div className="flex justify-end">
+                    <Button onClick={handleUpdateProfile}>
+                      Salvar alterações
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -177,6 +210,8 @@ export default function Profile() {
                       type="checkbox"
                       id="email-notifications"
                       className="rounded border-gray-300"
+                      checked
+                      disabled
                     />
                     <Label htmlFor="email-notifications">
                       Receber notificações por email
@@ -188,6 +223,8 @@ export default function Profile() {
                       type="checkbox"
                       id="new-events"
                       className="rounded border-gray-300"
+                      checked
+                      disabled
                     />
                     <Label htmlFor="new-events">Novos eventos</Label>
                   </div>
@@ -197,13 +234,17 @@ export default function Profile() {
                       type="checkbox"
                       id="tickets"
                       className="rounded border-gray-300"
+                      disabled
+                      checked
                     />
                     <Label htmlFor="tickets">Atualizações de bilhetes</Label>
                   </div>
 
-                  <div className="flex justify-end">
-                    <Button>Salvar preferências</Button>
-                  </div>
+                  {user.user_type != "master-admin" && (
+                    <div className=" justify-end hidden">
+                      <Button>Salvar preferências</Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

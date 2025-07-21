@@ -1,12 +1,14 @@
 "use client";
 
 import "./globals.css";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Provider } from "react-redux";
 import { makeStore } from "@/lib/redux/store";
 import type { AppStore } from "@/lib/redux/store";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 const metadata: Metadata = {
   title: "Create Next App",
@@ -20,13 +22,14 @@ export default function RootLayout({
 }) {
   // Cria a store uma única vez durante a renderização inicial
   const storeRef = useRef<AppStore | null>(null);
+  const router = useRouter();
   if (!storeRef.current) {
     storeRef.current = makeStore();
   }
 
   return (
     <html lang="pt-BR">
-      <body>
+      <body className="">
         <Provider store={storeRef.current}>{children}</Provider>
         <Toaster />
       </body>

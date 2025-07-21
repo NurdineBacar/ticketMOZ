@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Music, Banknote, Ticket } from "lucide-react";
+import { Calendar, MapPin, Music, Banknote, Ticket, Timer } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/hooks/hook-langauge";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { EventProps } from "@/app/localEvent";
 import EventDetailsDialog from "../EventDetailsDialog";
 import api from "@/lib/axios";
 import { useAuth } from "@/hooks/useAuth";
+import { Label } from "@/components/ui/label";
 
 const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
   const isMobile = useIsMobile();
@@ -30,31 +31,10 @@ const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
     setDetailsOpen(true);
   };
 
-  const teste = async () => {
-    try {
-      await api.post(
-        "http://localhost:4000/ticket/pay",
-        {
-          amount: 15,
-          phone_number: "845636664",
-        },
-        {
-          headers: {
-            Authorization:
-              "Basic cGtfdGVzdF84NzkyMzNiMzgwYjRjMjU3YzAxMzQwNWIyNWNiM2Q5Mzpza190ZXN0XzViODNiZTJlYTlhZTVlZDdiY2ZlZTg2NjI3YmE3YzczMWYzNzVkNzZjY2QxMjI4Ng==",
-            "Content-Type": "application/json",
-          },
-          timeout: 80000,
-        }
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
   return (
     <>
       <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
-        <div className="relative h-80 sm:h-[410px] overflow-hidden -top-6">
+        <div className="relative h-[480px] sm:h-[410px] overflow-hidden -top-6">
           <img
             src={event.imageUrl}
             alt={event.title}
@@ -64,9 +44,9 @@ const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
             {event.genre}
           </div>
         </div>
-        <CardContent className="flex-grow -mt-6">
+        <CardContent className="flex-grow flex-col -mt-6">
           <h3 className="font-bold text-lg mb-2 line-clamp-2">{event.title}</h3>
-          <div className="space-y-2 text-sm text-gray-600 flex items-start justify-start gap-6">
+          <div className="space-y-2 text-sm text-gray-600 flex items-start justify-start flex-wrap gap-x-3 gap-y-2">
             <div className="flex items-center gap-2">
               <Calendar size={16} />
               <span>{event.date}</span>
@@ -76,23 +56,52 @@ const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
               <span className="line-clamp-1">{event.location}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Banknote size={16} />
-              <span>MZN {event.price}</span>
+              <Timer size={16} />
+              <span className="line-clamp-1">{event.event?.start_time}</span>
             </div>
+
+            {event.event?.ticket?.ticketType.find((t) => t.name === "VIP")
+              ?.price != 0 && (
+              <div className="flex items-center gap-2">
+                <Banknote size={16} />
+                <span>
+                  MZN{" "}
+                  {event.event?.ticket?.ticketType.find((t) => t.name === "VIP")
+                    ?.price || ""}{" "}
+                  {" - VIP"}
+                </span>
+              </div>
+            )}
+
+            {event.event?.ticket?.ticketType.find((t) => t.name === "Normal")
+              ?.price != 0 && (
+              <div className="flex items-center gap-2">
+                <Banknote size={16} />
+                <span>
+                  MZN{" "}
+                  {event.event?.ticket?.ticketType.find(
+                    (t) => t.name === "Normal"
+                  )?.price || ""}{" "}
+                  {" - Normal"}
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
-        {user && (
-          <CardFooter className="pt-0 flex flex-col gap-3">
-            <Button
-              className="w-full"
-              size={isMobile ? "lg" : "default"}
-              onClick={handleButtonClick}
-            >
-              <Ticket size={16} className="mr-1" />
-              <span>{t("buyButton")}</span>
-            </Button>
-          </CardFooter>
-        )}
+        {user &&
+          user.user_type != "promotor" &&
+          user.user_type != "master-admin" && (
+            <CardFooter className="pt-0 flex flex-col gap-3">
+              <Button
+                className="w-full"
+                size={isMobile ? "lg" : "default"}
+                onClick={handleButtonClick}
+              >
+                <Ticket size={16} className="mr-1" />
+                <span>{t("buyButton")}</span>
+              </Button>
+            </CardFooter>
+          )}
       </Card>
 
       <EventDetailsDialog

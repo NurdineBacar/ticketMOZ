@@ -37,7 +37,7 @@ export class BuyTickets {
               "Basic cGtfdGVzdF84NzkyMzNiMzgwYjRjMjU3YzAxMzQwNWIyNWNiM2Q5Mzpza190ZXN0XzViODNiZTJlYTlhZTVlZDdiY2ZlZTg2NjI3YmE3YzczMWYzNzVkNzZjY2QxMjI4Ng==",
             "Content-Type": "application/json",
           },
-          timeout: 80000,
+          timeout: 60000,
         }
       );
 

@@ -31,7 +31,9 @@ import { EventService } from "@/service/event/event-service";
 import { SalesTicketService } from "@/service/sales/sales-ticket";
 import { Event } from "@/types/event";
 import { SalesTicketType } from "@/types/sales-ticket";
+import jsPDF from "jspdf"; // Apenas jsPDF é necessário
 import { useAuth } from "@/hooks/useAuth";
+import Cookies from "js-cookie";
 
 const COLORS = ["#000000", "#CCCCCC", "#666666", "#999999"];
 
@@ -49,23 +51,35 @@ export default function ReportsPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        if (!user) {
-          console.error("ID invalido");
-          return;
+        const userCookie = Cookies.get("user");
+        const userData = userCookie ? JSON.parse(userCookie) : null;
+
+        // Primeiro buscamos os dados do usuário
+        if (!userData?.id) {
+          throw new Error("Dados do usuário não encontrados");
         }
 
-        const [eventsData, ticketsData] = await Promise.all([
-          eventService.getEventsPromoter(user.id),
-          ticketService.getAllPromoter(user.id),
+        // Agora fazemos todas as requisições em paralelo
+        const [userEventsData, userTicketsData] = await Promise.all([
+          eventService.getEventsDash(userData.id), // Adicionado await implicitamente via Promise.all
+          ticketService.getAllPromoter(userData.id),
         ]);
-        setEvents(eventsData);
-        setTickets(ticketsData);
+
+        setEvents(userEventsData.data);
+        setTickets(userTicketsData);
+
+        console.log("Dados dos eventos do dashboard:");
+        console.log(userEventsData); // Agora isso mostrará os dados resolvidos
+        console.log("Dados dos bilhetes do dashboard:");
+        console.log(userTicketsData); // Agora isso mostrará os dados resolvidos
       } catch (err) {
+        console.error("Erro ao carregar dados:", err);
         toast.error("Erro ao carregar dados dos relatórios");
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -143,19 +157,163 @@ export default function ReportsPage() {
     );
   }
 
-  const handleExportCSV = () => {
-    const rows = [
-      ["Cliente", "Bilhetes", "Total Gasto"],
-      ...topCustomers.map((c) => [c.name, c.tickets, c.spent]),
-    ];
-    const csvContent = rows.map((e) => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "clientes.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportCSV = (type: "clientes" | "eventos") => {
+    try {
+      let rows: string[][] = [];
+      let filename = "";
+
+      if (type === "clientes") {
+        // Cabeçalhos para clientes
+        rows = [
+          ["Cliente", "Bilhetes Adquiridos", "Total Gasto (MZN)"],
+          ...topCustomers.map((c) => [
+            c.name,
+            c.tickets.toString(),
+            c.spent.toLocaleString("pt-BR"),
+          ]),
+        ];
+        filename = `clientes_top_${new Date().toISOString().split("T")[0]}.csv`;
+      } else {
+        // Cabeçalhos para eventos
+        rows = [
+          ["Evento", "Bilhetes Vendidos", "Receita Total (MZN)"],
+          ...topEvents.map((e) => [
+            e.name,
+            e.tickets.toString(),
+            e.revenue.toLocaleString("pt-BR"),
+          ]),
+        ];
+        filename = `eventos_top_${new Date().toISOString().split("T")[0]}.csv`;
+      }
+
+      const csvContent = rows.map((row) => row.join(",")).join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`Relatório de ${type} exportado com sucesso`);
+    } catch (error) {
+      console.error(`Erro ao exportar ${type}:`, error);
+      toast.error(`Falha ao exportar ${type}`);
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      toast.info("Gerando relatório PDF...");
+
+      // Criar novo documento PDF
+      const doc = new jsPDF();
+
+      // Configurações iniciais
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      let yPosition = 20;
+
+      // Adicionar título
+      doc.setFontSize(20);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Relatório de Vendas", pageWidth / 2, yPosition, {
+        align: "center",
+      });
+      yPosition += 10;
+
+      doc.setFontSize(12);
+      doc.text(
+        `Gerado em: ${new Date().toLocaleDateString("pt-BR")}`,
+        pageWidth / 2,
+        yPosition,
+        { align: "center" }
+      );
+      yPosition += 20;
+
+      // Função auxiliar para criar tabelas simples
+      const createSimpleTable = (
+        headers: string[],
+        rows: string[][],
+        startY: number
+      ) => {
+        const colWidth = (pageWidth - 2 * margin) / headers.length;
+        const rowHeight = 10;
+
+        // Cabeçalho
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        headers.forEach((header, i) => {
+          doc.text(header, margin + i * colWidth, startY);
+        });
+
+        // Linha divisória
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.2);
+        doc.line(margin, startY + 5, pageWidth - margin, startY + 5);
+
+        // Conteúdo
+        doc.setFont("helvetica", "normal");
+        rows.forEach((row, rowIndex) => {
+          row.forEach((cell, colIndex) => {
+            doc.text(
+              cell,
+              margin + colIndex * colWidth,
+              startY + (rowIndex + 1) * rowHeight + 5
+            );
+          });
+        });
+
+        // Calcular nova posição Y
+        return startY + (rows.length + 1) * rowHeight + 10;
+      };
+
+      // Tabela de Clientes Top
+      doc.setFontSize(14);
+      doc.text("Clientes Top", margin, yPosition);
+      yPosition += 10;
+
+      const clientHeaders = ["Cliente", "Bilhetes", "Total Gasto (MZN)"];
+      const clientRows = topCustomers.map((customer) => [
+        customer.name,
+        customer.tickets.toString(),
+        customer.spent.toLocaleString("pt-BR"),
+      ]);
+
+      yPosition = createSimpleTable(clientHeaders, clientRows, yPosition);
+
+      // Verificar se precisa de nova página
+      if (yPosition > doc.internal.pageSize.height - 50) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      // Tabela de Eventos Top
+      doc.setFontSize(14);
+      doc.text("Eventos Top", margin, yPosition);
+      yPosition += 10;
+
+      const eventHeaders = ["Evento", "Bilhetes Vendidos", "Receita (MZN)"];
+      const eventRows = topEvents.map((event) => [
+        event.name,
+        event.tickets.toString(),
+        event.revenue.toLocaleString("pt-BR"),
+      ]);
+
+      yPosition = createSimpleTable(eventHeaders, eventRows, yPosition);
+
+      // Salvar PDF
+      doc.save(
+        `relatorio_vendas_${new Date().toISOString().split("T")[0]}.pdf`
+      );
+
+      toast.success("Relatório PDF exportado com sucesso");
+    } catch (error) {
+      console.error("Erro ao exportar PDF:", error);
+      toast.error("Falha ao exportar PDF");
+    }
   };
 
   return (
@@ -167,10 +325,19 @@ export default function ReportsPage() {
             <span>Análise de todos os eventos</span>
           </article>
           <article className="flex gap-3 items-center">
-            <Button variant={"outline"} onClick={handleExportCSV}>
-              <Download /> Exportar CSV
+            <Button
+              variant="outline"
+              onClick={() => handleExportCSV("clientes")}
+            >
+              <Download className="mr-2 h-4 w-4" /> Exportar Clientes
             </Button>
-            <Button>Exportar PDF</Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportCSV("eventos")}
+            >
+              <Download className="mr-2 h-4 w-4" /> Exportar Eventos
+            </Button>
+            <Button onClick={handleExportPDF}>Exportar PDF</Button>
           </article>
         </header>
 

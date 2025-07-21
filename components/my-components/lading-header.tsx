@@ -163,7 +163,7 @@ const LandingHeader = () => {
                           className="w-full"
                           onClick={() => {
                             signOut();
-                            router.refresh();
+                            router.replace("/auth/sign-in");
                           }}
                         >
                           {t("signOut")}

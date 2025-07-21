@@ -49,4 +49,19 @@ export class UserService {
       throw new Error("Erro ao buscar promotores pendentes: " + error);
     }
   }
+
+  async updateName(userID: string, name: string) {
+    const response = await api.put("/user/update-name", {
+      userID: userID,
+      name: name,
+    });
+
+    if (response.status == 200 || response.status == 201) {
+      if (response.data.success) {
+        return response.data;
+      }
+
+      return response.data;
+    }
+  }
 }
