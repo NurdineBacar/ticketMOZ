@@ -23,7 +23,8 @@ const Hero = () => {
 
   const handlePromoterEvent = () => {
     if (!user) {
-      return "Utiliozador invlido";
+      router.push("/auth/sign-in");
+      return;
     }
 
     if (user.user_type != "promotor") {
