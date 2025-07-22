@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Music, Banknote, Ticket, Timer } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Music,
+  Banknote,
+  Ticket,
+  Timer,
+  Tickets,
+  XCircle,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/hooks/hook-langauge";
 import { useRouter } from "next/navigation";
@@ -18,32 +27,77 @@ const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
   const t = useTranslation();
   const router = useRouter();
 
-  console.log("User do hoook:");
-  console.log(user);
-  console.log("FIm do user do hook");
+  // Check ticket availability
+  const normalTicket = event.event?.ticket?.ticketType?.find(
+    (t) => t.name === "Normal"
+  );
+  const vipTicket = event.event?.ticket?.ticketType?.find(
+    (t) => t.name === "VIP"
+  );
+
+  const normalQuantity = normalTicket?.quantity ?? 0;
+  const vipQuantity = vipTicket?.quantity ?? 0;
+
+  // Check if event date has passed or is today
+  const eventDate = event.date ? new Date(event.date) : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time part for accurate comparison
+
+  const isPastEvent = eventDate && eventDate < today;
+  const isToday =
+    eventDate &&
+    eventDate.getDate() === today.getDate() &&
+    eventDate.getMonth() === today.getMonth() &&
+    eventDate.getFullYear() === today.getFullYear();
+
+  // Determine if event is available
+  const isAvailable =
+    (normalQuantity > 0 || vipQuantity > 0) && !isPastEvent && !isToday; // Remove !isToday if you want same-day to be available
+
   const handleButtonClick = () => {
     if (!user) {
       router.push("/login");
       return;
     }
 
-    // If user is logged in, open details dialog
+    if (!isAvailable) {
+      return; // Don't open dialog if unavailable
+    }
+
     setDetailsOpen(true);
   };
 
   return (
     <>
-      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col relative">
+        {/* Unavailable overlay */}
+        {!isAvailable && (
+          <div className="absolute inset-0 bg-black bg-opacity-60 z-10 flex items-center justify-center">
+            <div className="text-white text-center p-4">
+              <XCircle size={48} className="mx-auto mb-2" />
+              <h3 className="text-xl font-bold">INDISPONÍVEL</h3>
+              <p className="text-sm mt-1">
+                {isPastEvent
+                  ? "Este evento já ocorreu"
+                  : isToday
+                  ? "Evento ocorre hoje"
+                  : "Ingressos esgotados"}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="relative h-[480px] sm:h-[410px] overflow-hidden -top-6">
           <img
             src={event.imageUrl}
             alt={event.title}
-            className="w-full h-full  transition-transform duration-300 hover:scale-105"
+            className="w-full h-full transition-transform duration-300 hover:scale-105"
           />
           <div className="absolute top-2 right-2 bg-black text-white px-3 py-1 rounded-full text-xs">
             {event.genre}
           </div>
         </div>
+
         <CardContent className="flex-grow flex-col -mt-6">
           <h3 className="font-bold text-lg mb-2 line-clamp-2">{event.title}</h3>
           <div className="space-y-2 text-sm text-gray-600 flex items-start justify-start flex-wrap gap-x-3 gap-y-2">
@@ -59,35 +113,31 @@ const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
               <Timer size={16} />
               <span className="line-clamp-1">{event.event?.start_time}</span>
             </div>
+            <div className="flex items-center gap-2">
+              <Tickets size={16} /> Qtd:
+              <span className="line-clamp-1">{normalQuantity} - Normal</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Tickets size={16} /> Qtd:
+              <span className="line-clamp-1">{vipQuantity} - VIP</span>
+            </div>
 
-            {event.event?.ticket?.ticketType.find((t) => t.name === "VIP")
-              ?.price != 0 && (
+            {vipTicket?.price && vipTicket.price > 0 && (
               <div className="flex items-center gap-2">
                 <Banknote size={16} />
-                <span>
-                  MZN{" "}
-                  {event.event?.ticket?.ticketType.find((t) => t.name === "VIP")
-                    ?.price || ""}{" "}
-                  {" - VIP"}
-                </span>
+                <span>MZN {vipTicket.price} - VIP</span>
               </div>
             )}
 
-            {event.event?.ticket?.ticketType.find((t) => t.name === "Normal")
-              ?.price != 0 && (
+            {normalTicket?.price && normalTicket.price > 0 && (
               <div className="flex items-center gap-2">
                 <Banknote size={16} />
-                <span>
-                  MZN{" "}
-                  {event.event?.ticket?.ticketType.find(
-                    (t) => t.name === "Normal"
-                  )?.price || ""}{" "}
-                  {" - Normal"}
-                </span>
+                <span>MZN {normalTicket.price} - Normal</span>
               </div>
             )}
           </div>
         </CardContent>
+
         {user &&
           user.user_type != "promotor" &&
           user.user_type != "master-admin" && (
@@ -96,20 +146,29 @@ const CardEvent: React.FC<{ event: EventProps }> = ({ event }) => {
                 className="w-full"
                 size={isMobile ? "lg" : "default"}
                 onClick={handleButtonClick}
+                disabled={!isAvailable}
               >
-                <Ticket size={16} className="mr-1" />
-                <span>{t("buyButton")}</span>
+                {isAvailable ? (
+                  <>
+                    <Ticket size={16} className="mr-1" />
+                    <span>{t("buyButton")}</span>
+                  </>
+                ) : (
+                  <span>INDISPONÍVEL</span>
+                )}
               </Button>
             </CardFooter>
           )}
       </Card>
 
-      <EventDetailsDialog
-        event={event}
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-        onPaymentSuccess={() => setDetailsOpen(false)}
-      />
+      {isAvailable && (
+        <EventDetailsDialog
+          event={event}
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          onPaymentSuccess={() => setDetailsOpen(false)}
+        />
+      )}
     </>
   );
 };

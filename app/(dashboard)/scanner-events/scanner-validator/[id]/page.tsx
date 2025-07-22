@@ -256,7 +256,7 @@ export default function ScannerPage() {
                 </span>
               )}
             </DialogTitle>
-            <DialogDescription className="flex justify-start">
+            <DialogDescription className="flex  flex-col justify-start">
               {validation?.message}
               {validation?.ticketInfo && (
                 <div className="mt-4 space-y-2">
@@ -288,7 +288,11 @@ export default function ScannerPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
-            <Button onClick={() => setIsScanning(true)}>
+            <Button
+              onClick={() => {
+                setIsScanning(true);
+              }}
+            >
               Escanear outro bilhete
             </Button>
           </div>
@@ -318,13 +322,13 @@ export default function ScannerPage() {
                     {ticket.qrCode} - {ticket?.user?.name} - {ticket?.updatedAt}{" "}
                     - {ticket?.tiketType?.name}
                   </span>
-                  <span>
+                  {/* <span>
                     {ticket.isUsed ? (
                       <BadgeCheck className="w-4 h-4 text-green-600" />
                     ) : (
                       <XCircle className="w-4 h-4 text-red-600" />
                     )}
-                  </span>
+                  </span> */}
                 </li>
               ))}
             </ul>

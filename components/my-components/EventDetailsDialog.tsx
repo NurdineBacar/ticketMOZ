@@ -15,6 +15,7 @@ import {
   Ticket,
   MinusCircle,
   PlusCircle,
+  Tickets,
 } from "lucide-react";
 import PaymentDialog from "./PaymentDialog";
 import { Label } from "@/components/ui/label";
@@ -42,7 +43,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   const router = useRouter();
   const t = useTranslation();
 
-  // Safely get ticket prices with fallbacks
+  // Safely get ticket prices and quantities with fallbacks
   const normalTicket = event.event?.ticket?.ticketType?.find(
     (t) => t.name === "Normal"
   );
@@ -52,7 +53,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
   const basePrice = normalTicket?.price ?? 0;
   const vipPrice = vipTicket?.price ?? 0;
-  const hasVipTickets = vipPrice > 0;
+  const normalTicketQuantity = normalTicket?.quantity ?? 0;
+  const vipTicketQuantity = vipTicket?.quantity ?? 0;
+  const hasVipTickets = vipPrice > 0 && vipTicketQuantity > 0;
 
   const totalNormalPrice = basePrice * normalCount;
   const totalVipPrice = vipPrice * vipCount;
@@ -68,9 +71,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
   const handleIncrement = (type: "normal" | "vip") => {
     if (type === "normal") {
-      setNormalCount((prev) => prev + 1);
+      setNormalCount((prev) => Math.min(normalTicketQuantity, prev + 1));
     } else {
-      setVipCount((prev) => prev + 1);
+      setVipCount((prev) => Math.min(vipTicketQuantity, prev + 1));
     }
   };
 
@@ -79,6 +82,17 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
       toast.error(t("selectAtLeastOneTicket"));
       return;
     }
+
+    if (normalCount > normalTicketQuantity) {
+      toast.error("Quantidade indisponivel");
+      return;
+    }
+
+    if (vipCount > vipTicketQuantity) {
+      toast.error("Quantidade indisponivel");
+      return;
+    }
+
     setPaymentOpen(true);
   };
 
@@ -138,6 +152,22 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   <span>{event.genre}</span>
                 </div>
               )}
+
+              <div className="flex items-center gap-2">
+                <Tickets size={16} /> Qtd:
+                <span className="line-clamp-1">
+                  {normalTicketQuantity} - Normal
+                </span>
+              </div>
+
+              {hasVipTickets && (
+                <div className="flex items-center gap-2">
+                  <Tickets size={16} /> Qtd:
+                  <span className="line-clamp-1">
+                    {vipTicketQuantity} - VIP
+                  </span>
+                </div>
+              )}
             </div>
 
             {event.event?.description && (
@@ -162,7 +192,6 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   </div>
                   <div className="font-bold">{formatPrice(basePrice)}</div>
                 </div>
-
                 <div className="flex items-center justify-between">
                   <Label className="mr-4">{t("quantity")}:</Label>
                   <div className="flex items-center gap-3">
@@ -181,6 +210,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                       variant="outline"
                       size="icon"
                       onClick={() => handleIncrement("normal")}
+                      disabled={normalCount >= normalTicketQuantity}
                     >
                       <PlusCircle />
                     </Button>
@@ -219,6 +249,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                         variant="outline"
                         size="icon"
                         onClick={() => handleIncrement("vip")}
+                        disabled={vipCount >= vipTicketQuantity}
                       >
                         <PlusCircle />
                       </Button>
@@ -261,7 +292,11 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               onClick={handleProceedToPayment}
               className="w-full"
               size="lg"
-              disabled={normalCount === 0 && vipCount === 0}
+              disabled={
+                (normalCount === 0 && vipCount === 0) ||
+                normalCount > normalTicketQuantity ||
+                vipCount > vipTicketQuantity
+              }
             >
               <Ticket className="mr-2 h-5 w-5" />
               {t("continueToPayment")}
