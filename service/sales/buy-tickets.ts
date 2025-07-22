@@ -22,7 +22,6 @@ export class BuyTickets {
         payment_method: data.payment_method,
         phone_number_payment: data.phone_number_payment,
         user_id: data.user_id,
-        ticketID: data.event?.ticket.id + "",
       };
 
       const payment = await api.post(
